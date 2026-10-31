@@ -2,8 +2,13 @@ node_modules/
 dist/
 coverage/
 .env
-.env.bak.*
+.env.*
+!.env.example
+*.pem
+*.key
+*.lic
 *.log
 .DS_Store
 .data/
 customer.config.json
+e2e-output/

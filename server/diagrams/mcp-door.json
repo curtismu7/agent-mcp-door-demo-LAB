@@ -1,0 +1,323 @@
+{
+  "schema": "diagram-studio/1",
+  "id": "mcp-door",
+  "title": "A member's agent meets {{castBrand}}'s MCP door",
+  "lede": "How a {{castProgram}} member's own AI agent reaches {{castBrand}}: discover, register, consent, per-call token exchange, gateway, policy decision, human approval, audit. The agent is never trusted; every hop past discovery is inside {{castBrand}}'s boundary.",
+  "groups": {
+    "member": {
+      "label": "The member's side",
+      "color": "dark"
+    },
+    "door": {
+      "label": "The MCP door",
+      "color": "red"
+    },
+    "ping": {
+      "label": "PingOne",
+      "color": "blue"
+    },
+    "enterprise": {
+      "label": "Enterprise services",
+      "color": "grey"
+    }
+  },
+  "nodes": [
+    {
+      "id": "member",
+      "label": "Member",
+      "group": "member",
+      "sub": [
+        "{{castProgram}} member"
+      ],
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "catalog",
+      "label": "AI assistant catalog",
+      "group": "member",
+      "sub": [
+        "e.g. ChatGPT's app directory"
+      ],
+      "x": 160,
+      "y": 0
+    },
+    {
+      "id": "agent",
+      "label": "Member's own agent",
+      "group": "member",
+      "sub": [
+        "ChatGPT, mobile assistant, CLI"
+      ],
+      "x": 320,
+      "y": 0
+    },
+    {
+      "id": "door",
+      "label": "{{castBrand}} MCP door",
+      "group": "door",
+      "sub": [
+        "PingGateway • public URL"
+      ],
+      "x": 480,
+      "y": 0
+    },
+    {
+      "id": "pingone",
+      "label": "PingOne",
+      "group": "ping",
+      "sub": [
+        "auth server • token service • Agreement"
+      ],
+      "x": 640,
+      "y": 0
+    },
+    {
+      "id": "authorize",
+      "label": "PingOne Authorize + Protect",
+      "group": "ping",
+      "sub": [
+        "permit • deny • step-up"
+      ],
+      "x": 800,
+      "y": 0
+    },
+    {
+      "id": "app",
+      "label": "{{castBrand}} app",
+      "group": "enterprise",
+      "sub": [
+        "member's phone or web"
+      ],
+      "x": 960,
+      "y": 0
+    },
+    {
+      "id": "rewards",
+      "label": "Rewards MCP + Facade",
+      "group": "enterprise",
+      "sub": [
+        "holds the legacy credentials"
+      ],
+      "x": 1120,
+      "y": 0
+    },
+    {
+      "id": "audit",
+      "label": "Audit + SIEM",
+      "group": "enterprise",
+      "sub": [
+        "the agent has no write path"
+      ],
+      "x": 1280,
+      "y": 0
+    }
+  ],
+  "edges": [
+    {
+      "source": "door",
+      "target": "catalog",
+      "label": "{{castBrand}} publishes its MCP door to the catalog: URL, auth metadata, branding and privacy policy"
+    },
+    {
+      "source": "catalog",
+      "target": "door",
+      "label": "Reviews it and lists it, so any member of the assistant can find it",
+      "dashed": true
+    },
+    {
+      "source": "member",
+      "target": "catalog",
+      "label": "Browses the catalog and adds the connector: free, nothing to install, no account to create"
+    },
+    {
+      "source": "catalog",
+      "target": "agent",
+      "label": "The connector appears in the member's own agent, not signed in yet",
+      "dashed": true
+    },
+    {
+      "source": "agent",
+      "target": "door",
+      "label": "Calls the MCP tool with no token → 401 + resource_metadata"
+    },
+    {
+      "source": "door",
+      "target": "agent",
+      "label": "RFC 9728 protected-resource metadata: the authorization server is PingOne",
+      "dashed": true
+    },
+    {
+      "source": "agent",
+      "target": "pingone",
+      "label": "Self-registers with a CIMD client document (or DCR, RFC 7591) and gets its own client identity"
+    },
+    {
+      "source": "agent",
+      "target": "member",
+      "label": "Opens the member's browser to PingOne (authorization code + PKCE)"
+    },
+    {
+      "source": "member",
+      "target": "pingone",
+      "label": "Passkey or MFA, then consents on a screen that names this agent: read miles, redeem with approval"
+    },
+    {
+      "source": "pingone",
+      "target": "agent",
+      "label": "Authorization code; the agent redeems it with private_key_jwt client authentication",
+      "dashed": true
+    },
+    {
+      "source": "agent",
+      "target": "pingone",
+      "label": "RFC 8693 exchange for one tool call (private_key_jwt)"
+    },
+    {
+      "source": "pingone",
+      "target": "agent",
+      "label": "Token: sub = member, act.client_id = agent, aud = one tool, minutes-long lifetime",
+      "dashed": true
+    },
+    {
+      "source": "agent",
+      "target": "door",
+      "label": "Tool call with the bearer token (no DPoP on PingOne)"
+    },
+    {
+      "source": "door",
+      "target": "authorize",
+      "label": "Validates aud and scope against the allowlist, then asks for a verdict on member, agent, tool and amount"
+    },
+    {
+      "source": "authorize",
+      "target": "door",
+      "label": "Permit, deny or step-up; redeeming miles is spending, so approval is required",
+      "dashed": true
+    },
+    {
+      "source": "door",
+      "target": "app",
+      "label": "Pending approval that names the exact redemption (timeout is denial)"
+    },
+    {
+      "source": "member",
+      "target": "app",
+      "label": "Reviews and approves in the {{castBrand}} app, never in the agent chat"
+    },
+    {
+      "source": "app",
+      "target": "door",
+      "label": "Single-use approval receipt, spendable only for this transaction",
+      "dashed": true
+    },
+    {
+      "source": "door",
+      "target": "rewards",
+      "label": "Only allowed calls get through; reads ride the delegated token, the redemption carries the approval"
+    },
+    {
+      "source": "rewards",
+      "target": "agent",
+      "label": "Result returns through the gateway",
+      "dashed": true
+    },
+    {
+      "source": "door",
+      "target": "audit",
+      "label": "Writes sub, act.client_id, jti, tool and verdict"
+    },
+    {
+      "source": "pingone",
+      "target": "audit",
+      "label": "Authorization server writes the same fields for every exchange"
+    }
+  ],
+  "steps": [
+    {
+      "title": "Publish once, get it free",
+      "what": "{{castBrand}} lists its connector in the assistant's catalog once. After that a member adds it from the catalog for free: nothing to install, no account to create. Sign-in and consent come on first use.",
+      "hop": "hop-1",
+      "edges": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "title": "Discover",
+      "what": "The agent knocks with no token and gets a 401 that points at the metadata. The door advertises itself; nobody at {{castBrand}} is involved.",
+      "hop": "hop-2",
+      "edges": [
+        4,
+        5
+      ]
+    },
+    {
+      "title": "Register",
+      "what": "The agent registers itself with a client document. Now {{castBrand}} has an identity to name in consent, scope, and switch off.",
+      "hop": "hop-3",
+      "edges": [
+        6
+      ]
+    },
+    {
+      "title": "Consent",
+      "what": "The member signs in at PingOne with a passkey. The consent screen names this agent and what it may do. The member session never enters the agent.",
+      "hop": "hop-4",
+      "edges": [
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "title": "Exchange, per call",
+      "what": "Every tool call gets its own token: subject is the member, actor is the agent, one audience, minutes to live. The agent holds nothing standing.",
+      "hop": "hop-5",
+      "edges": [
+        10,
+        11
+      ]
+    },
+    {
+      "title": "Call + decide",
+      "what": "The call reaches only the gateway. It checks audience and scope, then asks Authorize for a verdict. Redeeming miles is spending, so the answer is approval required.",
+      "hop": "hop-6",
+      "edges": [
+        12,
+        13,
+        14
+      ]
+    },
+    {
+      "title": "Approve",
+      "what": "The approval happens in {{castBrand}}'s own app, naming the exact redemption. One approval, one action, and a timeout means no.",
+      "hop": "hop-7",
+      "edges": [
+        15,
+        16,
+        17
+      ]
+    },
+    {
+      "title": "Permit",
+      "what": "Only permitted calls reach the rewards service, which accepts only its own audience. The credentials for the legacy system never leave the Facade.",
+      "hop": "hop-8",
+      "edges": [
+        18,
+        19
+      ]
+    },
+    {
+      "title": "Log and revoke",
+      "what": "Gateway and authorization server write the same record, in storage the agent cannot touch. Turn off the agent client and its access ends within one token lifetime.",
+      "hop": "hop-9",
+      "edges": [
+        20,
+        21
+      ]
+    }
+  ]
+}

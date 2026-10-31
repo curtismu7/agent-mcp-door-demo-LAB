@@ -1,4 +1,8 @@
 {
-  "_readme": "Copy to customer.config.json (git-ignored) to brand the walkthrough. Only these three cast values are read; everything else is ignored. host is lowercase letters, digits and dashes and becomes mcp.<host>.example.",
-  "cast": { "brand": "Northwind Air", "program": "Northwind Miles", "host": "northwind" }
+  "_readme": "Copy to customer.config.json (git-ignored) to brand the walkthrough. Only these three cast values are read (they fill {{castBrand}}, {{castProgram}} and {{castHost}}); everything else is ignored. host is lowercase letters, digits and dashes and becomes mcp.<host>.example.",
+  "cast": {
+    "brand": "Northwind Air",
+    "program": "Northwind Miles",
+    "host": "northwind"
+  }
 }

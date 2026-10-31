@@ -1,0 +1,145 @@
+/* The React Flow sequence diagram. Tokens only, so both themes work. Participant boxes use the shared dark box tokens. */
+.seq {
+  --xy-background-color: var(--surface);
+  --xy-edge-stroke: var(--text);
+  --xy-controls-button-background-color: var(--surface);
+  --xy-controls-button-background-color-hover: var(--surface-2);
+  --xy-controls-button-color: var(--text);
+  --xy-controls-button-border-color: var(--border);
+  --xy-background-pattern-dots-color: var(--border);
+}
+
+.seq-canvas {
+  position: relative;
+  width: 100%;
+  height: max(800px, calc(100vh - 220px));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.seq-flow {
+  width: 100%;
+  height: 100%;
+}
+
+.seq-part {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 60px;
+  padding: 8px 10px;
+  border: 1.5px solid var(--on-box);
+  border-radius: 6px;
+  background: var(--box-dark);
+  color: var(--on-box);
+  text-align: center;
+  cursor: grab;
+}
+
+.seq-part[data-group="door"] {
+  background: var(--box-red);
+}
+
+.seq-part[data-group="ping"] {
+  background: var(--box-blue);
+}
+
+.seq-part[data-group="enterprise"] {
+  background: var(--box-grey);
+}
+
+.seq-part__title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.seq-part__sub {
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.seq-lifeline {
+  width: 2px;
+  box-sizing: border-box;
+  border-left: 2px dashed var(--border);
+}
+
+.seq-anchor {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.seq-label {
+  position: absolute;
+  max-width: 380px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: center;
+  white-space: pre-line;
+  pointer-events: none;
+}
+
+.seq-band {
+  box-sizing: border-box;
+  padding: 6px 10px;
+  border: 1px solid var(--status-info);
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--status-info);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.seq .react-flow__edge-path {
+  stroke: var(--text);
+  stroke-width: 1.6;
+}
+
+.seq .react-flow__arrowhead polyline {
+  stroke: var(--text);
+  fill: var(--text);
+}
+
+.seq .react-flow__edge.animated .react-flow__edge-path {
+  stroke-dasharray: 6 4;
+}
+
+/* A wire form or mock token under its message. */
+.seq-payload {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 7px 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 15px;
+  text-align: left;
+  white-space: pre;
+}
+
+.react-flow__node.seq-hot .seq-payload {
+  border-color: var(--status-info);
+  box-shadow: 0 0 0 2px var(--status-info);
+}
+
+/* Ring the two ends of the arrow in focus. */
+.react-flow__node.seq-hot {
+  outline: 3px solid var(--status-info);
+  outline-offset: 3px;
+  border-radius: 10px;
+}

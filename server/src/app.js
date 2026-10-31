@@ -1,4 +1,4 @@
-// One Express app. /api = health, the story, and a no-op reset (the story is data; there is no server state to wipe).
+// One Express app. /api = health, mode, the story with its mock trace, and reset (clears the current workspace's trace).
 // Loopback Host check and same-origin writes on everything. Serves web/dist when it exists.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -7,13 +7,14 @@ import express from 'express';
 import { hostCheck, sameOriginWrites } from './safety.js';
 import { createHealth } from './health.js';
 import { buildFlow, loadCast } from './flow.js';
-import { modeFrom } from './config.js';
+import { modeFrom, modeInfo } from './config.js';
+import { createWorkspaces, workspaceFrom } from './workspaces.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB_DIST = process.env.WEB_DIST || path.resolve(HERE, '../../web/dist');
 const CONFIG = process.env.CUSTOMER_CONFIG || path.resolve(HERE, '../../customer.config.json');
 
-export function createApp({ health = createHealth(), configFile = CONFIG } = {}) {
+export function createApp({ health = createHealth(), configFile = CONFIG, workspaces = createWorkspaces() } = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.use(hostCheck);
@@ -23,12 +24,20 @@ export function createApp({ health = createHealth(), configFile = CONFIG } = {})
   const api = express.Router();
   api.use(express.json({ limit: '1kb' }));
   api.use('/health', health.router);
+  // The workspace id (rule 13) comes in the X-Workspace header; default "default". An unusable id is refused, never mapped to another.
+  api.use((req, res, next) => {
+    const id = workspaceFrom(req.headers['x-workspace']);
+    if (!id) return res.status(400).json({ error: 'bad_workspace', message: 'workspace ids are 1-32 lowercase letters, digits or dashes' });
+    req.workspace = workspaces.get(id);
+    next();
+  });
   // Read on every request so editing customer.config.json shows up on reload.
-  api.get('/flow', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json(buildFlow(loadCast(configFile))); });
-  // What this build is.
+  api.get('/flow', (req, res) => { res.set('Cache-Control', 'no-store'); res.json({ ...buildFlow(loadCast(configFile), { workspace: req.workspace }), ...modeInfo() }); });
+  // What this build is, and the Mock / Live toggle's state: mock is the only mode.
   api.get('/info', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json({ mode: modeFrom(), simulated: true }); });
-  // Reset: the walkthrough lives in the browser, so this only confirms. Kept so `npm run reset` and the shelf behave like the other demos.
-  api.post('/reset', (_req, res) => res.json({ reset: 'ok' }));
+  api.get('/mode', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json(modeInfo()); });
+  // Reset clears this workspace's mock trace (a new trace id) and nothing else; other workspaces are untouched.
+  api.post('/reset', (req, res) => { const w = workspaces.reset(req.workspace.id); res.json({ reset: 'ok', workspace: w.id, resets: w.resets }); });
   api.use((_req, res) => res.status(404).json({ error: 'not_found' }));
   app.use('/api', api);
   // Errors become short JSON. Express's default handler would send an HTML stack trace with absolute file paths.
