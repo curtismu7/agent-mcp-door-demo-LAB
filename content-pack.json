@@ -1,12 +1,12 @@
 {
   "schema": "demo-content-pack/1",
   "id": "agent-mcp-door-demo",
-  "title": "Agent Meets the MCP Door",
-  "version": "0.1.0",
+  "title": "Agent Meets the MCP Door LAB",
+  "version": "0.2.0",
   "demo": {
     "id": "agent-mcp-door-demo",
-    "name": "Agent Meets the MCP Door",
-    "catalog": "D21",
+    "name": "Agent Meets the MCP Door LAB",
+    "catalog": "D56",
     "baseUrl": "http://localhost:6850",
     "doctor": "/api/health",
     "tags": [

@@ -1,6 +1,6 @@
 {
   "name": "agent-mcp-door-demo-lab",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "A member's own AI agent meets an enterprise MCP door: discover, register, consent, per-call token exchange, gateway, policy decision, human approval, audit. A React Flow sequence diagram with mock tokens. Mock only: no tenant, no outbound network.",
@@ -10,7 +10,7 @@
     "web"
   ],
   "engines": {
-    "node": ">=22"
+    "node": ">=26"
   },
   "scripts": {
     "start": "npm start -w server",
@@ -19,7 +19,8 @@
     "doctor": "node scripts/doctor.mjs",
     "reset": "node scripts/reset.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
-    "content-pack": "node scripts/build-content-pack.mjs && node scripts/validate-content-pack.mjs"
+    "content-pack": "node scripts/build-content-pack.mjs && node scripts/build-talk-track.mjs && node scripts/validate-content-pack.mjs",
+    "dev": "npm run dev -w web"
   },
   "devDependencies": {
     "ajv": "^8.20.0"

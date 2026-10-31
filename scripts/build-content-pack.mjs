@@ -16,9 +16,9 @@ export function buildPack() {
   return {
     schema: 'demo-content-pack/1',
     id: 'agent-mcp-door-demo',
-    title: 'Agent Meets the MCP Door',
+    title: 'Agent Meets the MCP Door LAB',
     version,
-    demo: { id: 'agent-mcp-door-demo', name: 'Agent Meets the MCP Door', catalog: 'D21', baseUrl: 'http://localhost:6850', doctor: '/api/health', tags: ['mcp', 'agent', 'token-exchange', 'consent', 'approval', 'mock-only'] },
+    demo: { id: 'agent-mcp-door-demo', name: 'Agent Meets the MCP Door LAB', catalog: 'D56', baseUrl: 'http://localhost:6850', doctor: '/api/health', tags: ['mcp', 'agent', 'token-exchange', 'consent', 'approval', 'mock-only'] },
     glossary: [
       { id: 'catalog-listing', term: 'Catalog listing', definition: 'The company publishes its connector once to the AI assistant\'s catalog (for example ChatGPT\'s app directory): the MCP URL, how to authorize, branding and a privacy policy. After the vendor lists it, any member can add it for free from the catalog. The catalog holds no member credentials; sign-in and consent happen at the company\'s own identity provider on first use.', aliases: ['connector', 'app directory'] },
       { id: 'protected-resource-metadata', term: 'Protected-resource metadata', definition: 'A document the MCP door publishes (RFC 9728) that names its authorization server and the scopes it understands. The first 401 points at it, so an agent can find out how to get a token with no prior arrangement.', aliases: ['RFC 9728', 'resource_metadata'] },

@@ -46,6 +46,14 @@ test('compose default host port and Dockerfile port are allowed ports and agree'
   assert.match(docker, /^USER node$/m);
 });
 
+test('the image carries the story data and runs the health check', () => {
+  const docker = here('Dockerfile');
+  assert.match(docker, /^COPY server\/diagrams server\/diagrams$/m);
+  assert.match(docker, /^HEALTHCHECK /m);
+  assert.match(docker, /^FROM node:26-alpine/m);
+  assert.doesNotMatch(docker, /node:(18|20|22|24)/);
+});
+
 test('the container is locked down: read-only fs, no capabilities, no new privileges', () => {
   const compose = here('docker-compose.yml');
   assert.match(compose, /read_only: true/);

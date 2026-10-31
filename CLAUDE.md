@@ -1,9 +1,26 @@
 # Agent Meets the MCP Door LAB
 
-Demo-tier standalone app: a React Flow sequence diagram of an agent reaching an enterprise MCP door, with payloads and mock tokens. Mock only.
+Tier: Demo. A member's own AI agent reaches an enterprise MCP door: a movable React Flow sequence diagram with payloads and mock tokens. Mock only (no live mode exists). Ports 6850-6879 (default 6850).
 
-- Run: `./scripts/run.sh` (http://localhost:6850). Test: `npm test` (server is `node --test test/*.test.js`, a glob). Preflight: `npm run doctor`.
-- Story data is `server/src/flowData.js` with `{{brand}}`, `{{program}}`, `{{host}}` tokens; `flow.js` fills them from `customer.config.json`. A test fails on an unfilled token, a non-`.example` host or a name from the forbidden list.
-- Diagram files live in `web/src/components`, `hooks` and `utils` (SequenceFlowDiagram and friends).
-- Rules that bite: loopback bind only; same-origin writes; zero outbound network (netguard); no customer, tenant or product-owner names or ids; ports 6850-6879; show tokens raw (education) but never a real credential.
-- A row's height in the diagram comes from explicit line breaks, so `wrapMessages` breaks long messages; payload strings are monospace and sized by their longest line.
+## Run and test
+
+- `npm ci && npm run build && npm start` (http://127.0.0.1:6850) or `./scripts/run.sh`. Docker: `docker compose up --build -d` (127.0.0.1 only).
+- `npm test` = server (`node --test test/*.test.js`, a glob, never a directory) + web (vitest) + repo checks (`node --test scripts/*.test.mjs`). Node 26 only (`engines`, Dockerfile, CI).
+- `npm run doctor` (one line per check, exit 1 on failure), `npm run reset [workspace]`, `npm run content-pack` (rebuilds the pack and `docs/talk-track.md`, then validates; tests fail on drift).
+- Check against the family standards from the parent repo: `check-drift.sh`, `check-css.sh`, and `node ~/Development/demo-kit-base/scripts/conformance.mjs . --new --tier=Demo`.
+
+## How it is built
+
+- The story is `diagram-studio/1` data: `server/diagrams/mcp-door.json` (participants, 22 messages, 9 hops) and `mcp-door.annotations.json` (payload per message, reel details per participant). `server/src/story.js` loads and validates it (validator copied from the studio: `diagramStudio.js`). `{{castBrand}}`, `{{castProgram}}`, `{{castHost}}` are filled from `customer.config.json` by `flow.js`; a test fails on an undefined token, a non-`.example` host or a forbidden name.
+- Web: `lib/layout.js` (pure: diagram to React Flow nodes and edges, drag offsets), `components/SequenceDiagram.jsx`, `Reel`, `StepBar`, `ModeToggle`, `ActorHeader`; `lib/api.js` sends `X-Workspace`. Participant boxes are draggable in x only; Reset restores them (REFIT event).
+- Workspaces (rule 13): `X-Workspace` header, default `default`, capped table; reset clears the current workspace's mock trace only. Mock W3C `traceparent` per message (rule 14), labelled mock.
+- Mode: `server/src/config.js`. Only `mock`; `MODE=live` is refused (no silent fallback); the toggle shows Live disabled with the reason.
+- Settings: `server/src/settings.js` reads `STANDALONE_ENV` or `~/Development/.env`, only the keys in `ALLOWED`; admin or worker credentials are never read.
+
+## Rules that bite
+
+- Loopback bind only (0.0.0.0 inside Docker only, published on 127.0.0.1); Host check; same-origin writes; zero outbound network (netguard with self-test and a mutation test); no customer, tenant, product-owner or personal names or ids; only `.example` / `.invalid` hosts.
+- Styling: the vendored `web/src/standalone-ui.css` is byte-identical to the parent's `shared/standalone-ui.css` (never edit it; re-vendor). App CSS: tokens only, no colour literals, no `!important`, no italics, no `prefers-color-scheme`, no id selectors, kebab-case BEM, breakpoints 600 and 900. A repo test checks it.
+- Diagram text is rendered as text, never HTML. A row's height comes from explicit line breaks, so `wrapText` breaks long messages; payloads are monospace.
+- Do not use `crypto.generateKeyPair(Sync)` for EC. Show tokens raw (education) but never a real credential.
+- Never print the forbidden-strings list; scan with counts only. Commits end with the Co-Authored-By line.

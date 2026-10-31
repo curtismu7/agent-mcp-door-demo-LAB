@@ -1,6 +1,6 @@
 {
   "name": "@agent-mcp-door-demo/web",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "React + Vite UI for the MCP door walkthrough. Talks only to its own origin.",
@@ -10,6 +10,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/montserrat": "^5.3.0",
     "@xyflow/react": "^12.12.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
