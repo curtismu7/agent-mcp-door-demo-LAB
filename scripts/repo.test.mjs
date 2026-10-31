@@ -23,6 +23,22 @@ test('the shelf entry is valid and portable: relative composeFile, loopback url,
   assert.ok(!/\/Users\//.test(JSON.stringify(e)), 'no absolute home path');
 });
 
+// Catalog ids belong to the owner. D21 is Personal agent (Dot), D25 the connector login demo and D2 the MCP auth lab, so this
+// app must not claim them. No row matches yet: the shelf entry carries no catalogId, and the pack carries one proposed id that the
+// README names as unassigned. When the owner assigns a row, change the id in build-content-pack.mjs and README.md together.
+test('the catalog id does not collide with a row another app owns, and the README says it is unassigned', () => {
+  const taken = ['D2', 'D21', 'D25'];
+  const shelf = JSON.parse(read('docs/shelf-entry.json')).demos[0];
+  assert.ok(!('catalogId' in shelf), 'no catalogId on the shelf until the owner assigns a row');
+  const pack = JSON.parse(read('content-pack.json'));
+  assert.match(pack.demo.catalog, /^D[0-9]+$/);
+  assert.ok(!taken.includes(pack.demo.catalog), `${pack.demo.catalog} belongs to another app`);
+  const line = read('README.md').split('\n').find((l) => l.startsWith('Catalog:'));
+  assert.ok(line, 'README has a Catalog line');
+  assert.match(line, /not assigned/i);
+  assert.ok(line.includes(pack.demo.catalog), 'README names the proposed id the pack carries');
+});
+
 test('customer.config.json is git-ignored, and its example only sets the three cast values', () => {
   assert.match(read('.gitignore'), /^customer\.config\.json$/m);
   assert.deepEqual(Object.keys(JSON.parse(read('customer.config.example.json')).cast).sort(), ['brand', 'host', 'program']);

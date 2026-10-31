@@ -4,7 +4,7 @@ A member's own AI agent reaches an enterprise's MCP door, hop by hop, as a movab
 
 Tier: Demo
 Repo: https://github.com/ping-sandbox/agent-mcp-door-demo-LAB
-Catalog: D21 (provisional: the nearest row, "Personal agent"; confirm with the owner before the Learning Hub pack ships)
+Catalog: not assigned yet. No existing row matches (D21 is Personal agent (Dot), D25 the connector login demo, D2 the MCP auth lab). The Learning Hub pack carries the proposed new row D56 until the owner assigns one.
 
 The walkthrough: the company publishes its connector to the AI assistant's catalog once, members add it for free, then discover, register, consent, per-call token exchange, gateway, policy decision, human approval, audit. Under each message sits the wire form or the mock token, so you can read `sub`, `act.client_id`, a single `aud` and a minutes-long lifetime. A talk track says what to tell the room at each hop.
 

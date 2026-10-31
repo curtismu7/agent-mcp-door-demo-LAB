@@ -6,7 +6,7 @@
   "demo": {
     "id": "agent-mcp-door-demo",
     "name": "Agent Meets the MCP Door LAB",
-    "catalog": "D21",
+    "catalog": "D56",
     "baseUrl": "http://localhost:6850",
     "doctor": "/api/health",
     "tags": [
