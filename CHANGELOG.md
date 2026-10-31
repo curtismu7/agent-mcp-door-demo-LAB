@@ -7,7 +7,7 @@
 - Participant boxes are movable; Simulate, Speed, Reset (restores boxes) and the movie reel.
 - Mock / Live toggle on every view (Live disabled: no live backend), `MODE` setting, shared settings loader (own keys only), workspace id, mock W3C `traceparent` per hop.
 - Vendored shared stylesheet and the CSS standard; fonts bundled.
-- Netguard mutation test, doctor and reset by workspace, talk track and content pack generated from the story, hosted-runner CI on Node 22.
+- Netguard mutation test, doctor and reset by workspace, talk track and content pack generated from the story, hosted-runner CI on Node 26.
 
 ## 0.1.0
 

@@ -16,7 +16,7 @@ The walkthrough: the company publishes its connector to the AI assistant's catal
 
 ## Run from a clone
 
-Prerequisites: Node 22 or newer. Docker only for the Docker form.
+Prerequisites: Node 26 or newer. Docker only for the Docker form.
 
 ```sh
 git clone https://github.com/ping-sandbox/agent-mcp-door-demo-LAB.git
@@ -90,7 +90,7 @@ Publishes `127.0.0.1:6850` only (a test pins it); the container is read-only, ru
 npm test
 ```
 
-`npm test` runs the server tests (`node --test test/*.test.js`), the web tests (vitest) and the repo checks (`node --test scripts/*.test.mjs`). On Node 22: 62 server + 21 web + 21 repo checks (20 run, 1 skipped unless `LEARNING_HUB_DIR` is set), all passing. Set `LEARNING_HUB_DIR` to a Learning Hub checkout to also run the pack through the hub's own validator.
+`npm test` runs the server tests (`node --test test/*.test.js`), the web tests (vitest) and the repo checks (`node --test scripts/*.test.mjs`). On Node 26: 62 server + 21 web + 21 repo checks (20 run, 1 skipped unless `LEARNING_HUB_DIR` is set), all passing. Set `LEARNING_HUB_DIR` to a Learning Hub checkout to also run the pack through the hub's own validator.
 
 ## Troubleshooting
 

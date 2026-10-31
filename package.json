@@ -10,7 +10,7 @@
     "web"
   ],
   "engines": {
-    "node": ">=22"
+    "node": ">=26"
   },
   "scripts": {
     "start": "npm start -w server",

@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: 26
       - run: npm ci
       - name: Test (server, web, repo checks)
         run: npm test

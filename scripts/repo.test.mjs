@@ -62,17 +62,17 @@ test('no shipped text names a real customer, company or tenant', () => {
   assert.deepEqual(hits, []);
 });
 
-test('this is a Docker-only, mock-only, hosted-runner repo: no k8s, deploy or hosted-build material, no self-hosted runner, Node 22', () => {
+test('this is a Docker-only, mock-only, hosted-runner repo: no k8s, deploy or hosted-build material, no self-hosted runner, Node 26', () => {
   for (const d of ['k8s', 'deploy']) assert.ok(!fs.existsSync(path.join(root, d)), `${d}/ must not exist`);
   const ci = read('.github/workflows/ci.yml');
   assert.doesNotMatch(ci, /self-hosted/);
   assert.match(ci, /ubuntu-latest/);
   assert.match(ci, /gitleaks/);
   assert.match(ci, /FORBIDDEN_STRINGS/);
-  assert.match(ci, /node-version: 22/);
-  assert.doesNotMatch(ci, /node-version: (18|20|26)/);
+  assert.match(ci, /node-version: 26/);
+  assert.doesNotMatch(ci, /node-version: (18|20|22|24)/);
   const pkg = JSON.parse(read('package.json'));
-  assert.match(pkg.engines.node, />=\s*22/);
+  assert.match(pkg.engines.node, />=\s*26/);
   assert.match(pkg.name, /-lab$/);
 });
 

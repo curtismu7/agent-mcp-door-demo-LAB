@@ -5,7 +5,7 @@ Tier: Demo. A member's own AI agent reaches an enterprise MCP door: a movable Re
 ## Run and test
 
 - `npm ci && npm run build && npm start` (http://127.0.0.1:6850) or `./scripts/run.sh`. Docker: `docker compose up --build -d` (127.0.0.1 only).
-- `npm test` = server (`node --test test/*.test.js`, a glob, never a directory) + web (vitest) + repo checks (`node --test scripts/*.test.mjs`). Node 22 only (`engines`, Dockerfile, CI).
+- `npm test` = server (`node --test test/*.test.js`, a glob, never a directory) + web (vitest) + repo checks (`node --test scripts/*.test.mjs`). Node 26 only (`engines`, Dockerfile, CI).
 - `npm run doctor` (one line per check, exit 1 on failure), `npm run reset [workspace]`, `npm run content-pack` (rebuilds the pack and `docs/talk-track.md`, then validates; tests fail on drift).
 - Check against the family standards from the parent repo: `check-drift.sh`, `check-css.sh`, and `node ~/Development/demo-kit-base/scripts/conformance.mjs . --new --tier=Demo`.
 

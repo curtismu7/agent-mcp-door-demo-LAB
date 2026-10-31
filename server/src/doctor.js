@@ -14,7 +14,7 @@ export async function runChecks({ env = process.env, cast = DEFAULT_CAST, settin
   const add = (id, level, detail) => checks.push({ id, level, detail });
 
   const major = Number(process.versions.node.split('.')[0]);
-  add('node', major >= 22 ? 'pass' : 'fail', `v${process.versions.node} (need >= 22)`);
+  add('node', major >=26 ? 'pass' : 'fail', `v${process.versions.node} (need >=26)`);
 
   if (settings) {
     add('settings', 'info', settings.found

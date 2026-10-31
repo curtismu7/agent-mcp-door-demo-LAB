@@ -50,8 +50,8 @@ test('the image carries the story data and runs the health check', () => {
   const docker = here('Dockerfile');
   assert.match(docker, /^COPY server\/diagrams server\/diagrams$/m);
   assert.match(docker, /^HEALTHCHECK /m);
-  assert.match(docker, /^FROM node:22-alpine/m);
-  assert.doesNotMatch(docker, /node:(18|20|26)/);
+  assert.match(docker, /^FROM node:26-alpine/m);
+  assert.doesNotMatch(docker, /node:(18|20|22|24)/);
 });
 
 test('the container is locked down: read-only fs, no capabilities, no new privileges', () => {

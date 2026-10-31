@@ -1,5 +1,5 @@
-# Local standalone form: build the web app, then run the API server, which also serves web/dist. Node 22.
-FROM node:22-alpine AS build
+# Local standalone form: build the web app, then run the API server, which also serves web/dist. Node 26.
+FROM node:26-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY web/package.json web/
@@ -8,7 +8,7 @@ RUN npm ci
 COPY web web
 RUN npm run build -w web
 
-FROM node:22-alpine
+FROM node:26-alpine
 WORKDIR /app
 ENV NODE_ENV=production PORT=6850 MODE=mock
 COPY package.json package-lock.json ./
