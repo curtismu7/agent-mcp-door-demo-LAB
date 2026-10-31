@@ -1,0 +1,339 @@
+{
+  "schema": "demo-content-pack/1",
+  "id": "agent-mcp-door-demo",
+  "title": "Agent Meets the MCP Door",
+  "version": "0.1.0",
+  "demo": {
+    "id": "agent-mcp-door-demo",
+    "name": "Agent Meets the MCP Door",
+    "catalog": "D21",
+    "baseUrl": "http://localhost:6850",
+    "doctor": "/api/health",
+    "tags": [
+      "mcp",
+      "agent",
+      "token-exchange",
+      "consent",
+      "approval",
+      "mock-only"
+    ]
+  },
+  "glossary": [
+    {
+      "id": "catalog-listing",
+      "term": "Catalog listing",
+      "definition": "The company publishes its connector once to the AI assistant's catalog (for example ChatGPT's app directory): the MCP URL, how to authorize, branding and a privacy policy. After the vendor lists it, any member can add it for free from the catalog. The catalog holds no member credentials; sign-in and consent happen at the company's own identity provider on first use.",
+      "aliases": [
+        "connector",
+        "app directory"
+      ]
+    },
+    {
+      "id": "protected-resource-metadata",
+      "term": "Protected-resource metadata",
+      "definition": "A document the MCP door publishes (RFC 9728) that names its authorization server and the scopes it understands. The first 401 points at it, so an agent can find out how to get a token with no prior arrangement.",
+      "aliases": [
+        "RFC 9728",
+        "resource_metadata"
+      ]
+    },
+    {
+      "id": "cimd",
+      "term": "Client ID Metadata Document (CIMD)",
+      "definition": "The agent registers itself by publishing a client document at a URL and using that URL as its client id. The enterprise fetches it, so it has an identity to name in consent, scope and switch off. Dynamic client registration (RFC 7591) is the alternative.",
+      "aliases": [
+        "client document",
+        "DCR"
+      ]
+    },
+    {
+      "id": "private-key-jwt",
+      "term": "private_key_jwt",
+      "definition": "The agent authenticates to the token endpoint with a short signed assertion made with a key only it holds. A thief who steals tokens cannot mint more. It is client authentication, not sender constraint: a token already issued is still a bearer."
+    },
+    {
+      "id": "per-call-token",
+      "term": "Per-call token",
+      "definition": "Every tool call gets its own token through an RFC 8693 exchange: subject is the member, actor is the agent, one audience, a lifetime of minutes. The agent holds no standing credential, and an injected prompt can pick a tool but cannot mint a token.",
+      "aliases": [
+        "RFC 8693",
+        "token exchange"
+      ]
+    },
+    {
+      "id": "act-claim",
+      "term": "act claim",
+      "definition": "The claim that records who is acting for the subject. In this flow sub is the member and act.client_id is the agent, so every log line and policy decision can say both who the data belongs to and who asked for it.",
+      "aliases": [
+        "act.client_id",
+        "actor"
+      ]
+    },
+    {
+      "id": "bearer-token",
+      "term": "Bearer token",
+      "definition": "A token that works for whoever presents it. PingOne issues bearers (no DPoP), so the short lifetime, the single audience and the fact that it can only be presented at the gateway do the work that key binding would.",
+      "aliases": [
+        "no DPoP"
+      ]
+    },
+    {
+      "id": "approval-receipt",
+      "term": "Approval receipt",
+      "definition": "Proof that the human approved one specific action in the enterprise's own app. Single use, bound to that transaction, and a timeout is a denial. The human approves a transaction, never a session."
+    },
+    {
+      "id": "facade",
+      "term": "Facade",
+      "definition": "The one component that holds the legacy credentials. It performs the credential exchange and builds the web session in Redis keyed by a hash of the token; the session is never returned to the client."
+    }
+  ],
+  "sources": [
+    {
+      "id": "rfc9728",
+      "title": "RFC 9728: OAuth 2.0 Protected Resource Metadata",
+      "url": "https://www.rfc-editor.org/rfc/rfc9728",
+      "kind": "standard",
+      "use": "The metadata the first 401 points at.",
+      "status": "not-read",
+      "checked": "2026-10-21"
+    },
+    {
+      "id": "rfc8693",
+      "title": "RFC 8693: OAuth 2.0 Token Exchange",
+      "url": "https://www.rfc-editor.org/rfc/rfc8693",
+      "kind": "standard",
+      "use": "The per-call exchange that produces sub and act.",
+      "status": "not-read",
+      "checked": "2026-10-21"
+    },
+    {
+      "id": "rfc7591",
+      "title": "RFC 7591: OAuth 2.0 Dynamic Client Registration",
+      "url": "https://www.rfc-editor.org/rfc/rfc7591",
+      "kind": "standard",
+      "use": "The registration alternative to a client document.",
+      "status": "not-read",
+      "checked": "2026-10-21"
+    },
+    {
+      "id": "rfc7636",
+      "title": "RFC 7636: Proof Key for Code Exchange",
+      "url": "https://www.rfc-editor.org/rfc/rfc7636",
+      "kind": "standard",
+      "use": "PKCE on the consent step.",
+      "status": "not-read",
+      "checked": "2026-10-21"
+    },
+    {
+      "id": "rfc6750",
+      "title": "RFC 6750: The OAuth 2.0 Bearer Token Usage",
+      "url": "https://www.rfc-editor.org/rfc/rfc6750",
+      "kind": "standard",
+      "use": "The bearer credential and the 401 challenge.",
+      "status": "not-read",
+      "checked": "2026-10-21"
+    }
+  ],
+  "cards": [
+    {
+      "id": "try-hop-1",
+      "label": "Hop 1: Publish once, get it free",
+      "description": "Northwind Air lists its connector in the assistant's catalog once. After that a member adds it from the catalog for free: nothing to install, no account to create. Sign-in and consent come on first use.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#hop-1"
+      },
+      "terms": [
+        "catalog-listing"
+      ],
+      "story": "S01"
+    },
+    {
+      "id": "try-hop-2",
+      "label": "Hop 2: Discover",
+      "description": "The agent knocks with no token and gets a 401 that points at the metadata. The door advertises itself; nobody at Northwind Air is involved.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#hop-2"
+      },
+      "terms": [
+        "protected-resource-metadata"
+      ],
+      "story": "S02"
+    },
+    {
+      "id": "try-hop-3",
+      "label": "Hop 3: Register",
+      "description": "The agent registers itself with a client document. Now Northwind Air has an identity to name in consent, scope, and switch off.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#hop-3"
+      },
+      "terms": [
+        "cimd"
+      ],
+      "story": "S03"
+    },
+    {
+      "id": "try-hop-4",
+      "label": "Hop 4: Consent",
+      "description": "The member signs in at PingOne with a passkey. The consent screen names this agent and what it may do. The member session never enters the agent.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#hop-4"
+      },
+      "terms": [
+        "private-key-jwt"
+      ],
+      "story": "S04"
+    },
+    {
+      "id": "try-hop-5",
+      "label": "Hop 5: Exchange, per call",
+      "description": "Every tool call gets its own token: subject is the member, actor is the agent, one audience, minutes to live. The agent holds nothing standing.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#hop-5"
+      },
+      "terms": [
+        "per-call-token",
+        "act-claim",
+        "private-key-jwt"
+      ],
+      "story": "S05"
+    },
+    {
+      "id": "try-hop-6",
+      "label": "Hop 6: Call + decide",
+      "description": "The call reaches only the gateway. It checks audience and scope, then asks Authorize for a verdict. Redeeming miles is spending, so the answer is approval required.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#hop-6"
+      },
+      "terms": [
+        "bearer-token"
+      ],
+      "story": "S06"
+    },
+    {
+      "id": "try-hop-7",
+      "label": "Hop 7: Approve",
+      "description": "The approval happens in Northwind Air's own app, naming the exact redemption. One approval, one action, and a timeout means no.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#hop-7"
+      },
+      "terms": [
+        "approval-receipt"
+      ],
+      "story": "S07"
+    },
+    {
+      "id": "try-hop-8",
+      "label": "Hop 8: Permit",
+      "description": "Only permitted calls reach the rewards service, which accepts only its own audience. The credentials for the legacy system never leave the Facade.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#hop-8"
+      },
+      "terms": [
+        "facade"
+      ],
+      "story": "S08"
+    },
+    {
+      "id": "try-hop-9",
+      "label": "Hop 9: Log and revoke",
+      "description": "Gateway and authorization server write the same record, in storage the agent cannot touch. Turn off the agent client and its access ends within one token lifetime.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#hop-9"
+      },
+      "terms": [
+        "act-claim"
+      ],
+      "story": "S09"
+    },
+    {
+      "id": "concept-trust",
+      "label": "The agent is never trusted",
+      "description": "Every hop past discovery is inside the enterprise boundary; the agent only ever holds a token that lives for minutes.",
+      "group": "concept",
+      "action": {
+        "type": "route",
+        "href": "/"
+      },
+      "terms": [
+        "per-call-token",
+        "bearer-token"
+      ]
+    },
+    {
+      "id": "ref-doctor",
+      "label": "Doctor and health",
+      "description": "Preflight checks and the demo-health/1 endpoint.",
+      "group": "setup",
+      "action": {
+        "type": "route",
+        "href": "/api/health"
+      }
+    }
+  ],
+  "stories": [
+    {
+      "id": "S01",
+      "title": "Publish once, get it free",
+      "say": "Northwind Air lists its connector in the assistant's catalog once. After that a member adds it from the catalog for free: nothing to install, no account to create. Sign-in and consent come on first use."
+    },
+    {
+      "id": "S02",
+      "title": "Discover",
+      "say": "The agent knocks with no token and gets a 401 that points at the metadata. The door advertises itself; nobody at Northwind Air is involved."
+    },
+    {
+      "id": "S03",
+      "title": "Register",
+      "say": "The agent registers itself with a client document. Now Northwind Air has an identity to name in consent, scope, and switch off."
+    },
+    {
+      "id": "S04",
+      "title": "Consent",
+      "say": "The member signs in at PingOne with a passkey. The consent screen names this agent and what it may do. The member session never enters the agent."
+    },
+    {
+      "id": "S05",
+      "title": "Exchange, per call",
+      "say": "Every tool call gets its own token: subject is the member, actor is the agent, one audience, minutes to live. The agent holds nothing standing."
+    },
+    {
+      "id": "S06",
+      "title": "Call + decide",
+      "say": "The call reaches only the gateway. It checks audience and scope, then asks Authorize for a verdict. Redeeming miles is spending, so the answer is approval required."
+    },
+    {
+      "id": "S07",
+      "title": "Approve",
+      "say": "The approval happens in Northwind Air's own app, naming the exact redemption. One approval, one action, and a timeout means no."
+    },
+    {
+      "id": "S08",
+      "title": "Permit",
+      "say": "Only permitted calls reach the rewards service, which accepts only its own audience. The credentials for the legacy system never leave the Facade."
+    },
+    {
+      "id": "S09",
+      "title": "Log and revoke",
+      "say": "Gateway and authorization server write the same record, in storage the agent cannot touch. Turn off the agent client and its access ends within one token lifetime."
+    }
+  ]
+}
