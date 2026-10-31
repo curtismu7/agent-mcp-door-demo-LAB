@@ -1,46 +1,65 @@
 // Builds the story with the cast filled in. customer.config.json (optional, git-ignored) overrides the cast.
+// Tokens are {{castBrand}}, {{castProgram}}, {{castHost}}. A test fails on any token the cast does not define.
 import fs from 'node:fs';
 import { scanHosts } from './safety.js';
-import { DETAILS, HOPS, PAYLOADS, SOURCE } from './flowData.js';
+import { rawStory } from './story.js';
+import { traceFor } from './trace.js';
 
-export const DEFAULT_CAST = { brand: 'Northwind Air', program: 'Northwind Miles', host: 'northwind' };
+export const DEFAULT_CAST = { castBrand: 'Northwind Air', castProgram: 'Northwind Miles', castHost: 'northwind' };
 const TOKEN = /\{\{(\w+)\}\}/g;
 const MAX_CAST = 40;
-const MESSAGE = /^\s*\w+--?>>\w+:/;
 
-export const messageCount = (source) => source.split('\n').filter((l) => MESSAGE.test(l)).length;
-export const unfilled = (text, cast) => [...String(text).matchAll(TOKEN)].map((m) => m[1]).filter((k) => !(k in cast));
-const fill = (text, cast) => String(text).replace(TOKEN, (m, k) => (k in cast ? cast[k] : m));
+export const unfilled = (text, cast) => [...String(text).matchAll(TOKEN)].map((m) => m[1]).filter((k) => !Object.hasOwn(cast, k));
+export const fill = (text, cast) => String(text).replace(TOKEN, (m, k) => (Object.hasOwn(cast, k) ? cast[k] : m));
+export function fillDeep(value, cast) {
+  if (typeof value === 'string') return fill(value, cast);
+  if (Array.isArray(value)) return value.map((v) => fillDeep(v, cast));
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, fillDeep(v, cast)]));
+  return value;
+}
 
-// Only brand, program and host, as plain short strings; anything else in the file is ignored.
+// customer.config.json keeps its short keys: { "cast": { "brand", "program", "host" } }. Anything else in the file is ignored.
+const KEYS = { brand: 'castBrand', program: 'castProgram', host: 'castHost' };
+
 export function loadCast(file) {
   const cast = { ...DEFAULT_CAST };
   if (!file) return cast;
   try {
     const cfg = JSON.parse(fs.readFileSync(file, 'utf8'));
-    for (const k of Object.keys(DEFAULT_CAST)) {
-      const v = cfg?.cast?.[k];
+    for (const [short, key] of Object.entries(KEYS)) {
+      const v = cfg?.cast?.[short];
       if (typeof v !== 'string' || !v.trim()) continue;
       const clean = v.replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ').trim().slice(0, MAX_CAST);
       // A display name is not a URL: anything that names a host or an address keeps the default.
       if (/:\/\/|@/.test(clean) || scanHosts(clean).length) continue;
-      cast[k] = k === 'host' ? clean.toLowerCase() : clean;
+      cast[key] = short === 'host' ? clean.toLowerCase() : clean;
     }
-    if (!/^[a-z0-9-]{1,30}$/.test(cast.host)) cast.host = DEFAULT_CAST.host;
+    if (!/^[a-z0-9-]{1,30}$/.test(cast.castHost)) cast.castHost = DEFAULT_CAST.castHost;
   } catch { /* no file or not JSON: the defaults */ }
   return cast;
 }
 
-export function rawStory() { return { source: SOURCE, payloads: PAYLOADS, details: DETAILS, hops: HOPS }; }
+// The hops as the talk track shows them: n, title, first and last message, what to say.
+export const hopsOf = (doc) => doc.steps.map((s, i) => ({ n: i + 1, title: s.title, first: s.edges[0], last: s.edges[s.edges.length - 1], say: s.what }));
 
-export function buildFlow(cast = DEFAULT_CAST) {
+// Every text field of the story, unfilled, for the token and hygiene checks.
+export function storyText(name) {
+  const { doc, ann } = rawStory(name);
+  return JSON.stringify({ doc, ann });
+}
+
+export function buildFlow(cast = DEFAULT_CAST, { workspace, name } = {}) {
+  const { doc, ann } = rawStory(name);
+  const diagram = fillDeep(doc, cast);
   return {
-    title: fill("A member's agent meets {{brand}}'s MCP door", cast),
-    intro: fill("How a {{program}} member's own AI agent reaches {{brand}}: discover, register, consent, per-call token exchange, gateway, policy decision, human approval, audit. The agent is never trusted; every hop past discovery is inside {{brand}}'s boundary.", cast),
+    title: diagram.title,
+    intro: diagram.lede,
     cast,
-    source: fill(SOURCE, cast),
-    payloads: PAYLOADS.map((p) => (p === null ? null : fill(p, cast))),
-    details: Object.fromEntries(Object.entries(DETAILS).map(([k, v]) => [k, fill(v, cast)])),
-    hops: HOPS.map((h) => ({ ...h, say: fill(h.say, cast) })),
+    diagram,
+    payloads: fillDeep(ann.payloads, cast),
+    details: fillDeep(ann.details, cast),
+    hops: hopsOf(diagram),
+    // Mock W3C trace context, one traceparent per message (rule 14). Only present for a workspace.
+    ...(workspace ? { workspace: workspace.id, trace: traceFor(workspace.traceId, doc.edges.length) } : {}),
   };
 }

@@ -6,7 +6,7 @@ import { DEFAULT_CAST } from '../src/flow.js';
 test('every doctor check passes on a clean default environment', async () => {
   const checks = await runChecks({ env: {} });
   assert.ok(allPassed(checks), JSON.stringify(checks.filter((c) => c.level === 'fail')));
-  for (const id of ['node', 'bind', 'port-range', 'story-shape', 'story-details', 'story-tokens', 'story-hosts', 'story-keys', 'netguard', 'tenant']) {
+  for (const id of ['node', 'bind', 'port-range', 'story-shape', 'story-tokens', 'story-hosts', 'story-keys', 'trace', 'netguard', 'tenant']) {
     assert.ok(checks.some((c) => c.id === id), id);
   }
 });
@@ -22,7 +22,7 @@ test('MODE other than mock fails the doctor', async () => {
 });
 
 test('the doctor host scan catches a real host in the story', async () => {
-  const bad = { ...DEFAULT_CAST, brand: 'Acme https://acme-airlines.com/x' };
+  const bad = { ...DEFAULT_CAST, castBrand: 'Acme https://acme-airlines.com/x' };
   const hosts = (await runChecks({ env: {}, cast: bad })).find((c) => c.id === 'story-hosts');
   assert.equal(hosts.level, 'fail');
   assert.match(hosts.detail, /acme-airlines\.com/);
