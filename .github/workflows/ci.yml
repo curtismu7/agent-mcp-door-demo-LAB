@@ -1,38 +1,60 @@
 name: CI
+
 on:
+  pull_request:
   push:
     branches: [main]
-  pull_request:
+
+permissions:
+  contents: read
+
 jobs:
-  build:
-    # Repo variable RUNS_ON (a JSON array, e.g. ["ubuntu-latest"]) overrides the self-hosted Mac default.
-    runs-on: ${{ fromJSON(vars.RUNS_ON || '["self-hosted","macOS"]') }}
-    strategy:
-      matrix:
-        # Node 22 on pull requests; 20 and 22 on push to main.
-        node: ${{ fromJSON(github.event_name == 'pull_request' && '[22]' || '[20,22]') }}
+  build-test:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 22
       - run: npm ci
-      - run: npm test
-      - run: npm run build
-      # A spare port in the range: the local container may hold 6850 on this runner.
-      - run: PORT=6879 npm run doctor
-  secrets:
-    runs-on: ${{ fromJSON(vars.RUNS_ON || '["self-hosted","macOS"]') }}
+      - name: Test (server, web, repo checks)
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Content pack validates
+        run: npm run content-pack
+      - name: Doctor
+        run: PORT=6879 npm run doctor
+
+  gitleaks:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - run: PATH="/opt/homebrew/bin:$PATH" gitleaks detect --source . --redact -v
-      # Forbidden-strings gate: the list lives on the runner (never in the repo). The count is printed, the strings never are.
-      - name: forbidden strings (history)
+      - name: Install gitleaks
         run: |
-          list="$HOME/.config/demo-kit/forbidden-strings.txt"
-          if [ ! -f "$list" ]; then echo "forbidden-strings.txt missing on this runner"; exit 1; fi
-          hits=$(git log -p --all | grep -cF -f "$list" || true)
-          echo "forbidden-string hits: $hits"
-          [ "$hits" = "0" ]
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz | tar -xz gitleaks
+          ./gitleaks version
+      - name: Scan history
+        run: ./gitleaks detect --source . --redact --no-banner
+
+  forbidden-strings:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Scan history and tree (counts only, the list is never printed)
+        env:
+          FORBIDDEN_STRINGS: ${{ secrets.FORBIDDEN_STRINGS }}
+        run: |
+          list="$RUNNER_TEMP/forbidden.txt"
+          printf '%s\n' "$FORBIDDEN_STRINGS" | grep -v '^$' > "$list" || true
+          test -s "$list" || { echo "FORBIDDEN_STRINGS secret is empty"; exit 1; }
+          hist=$(git log -p --all | grep -cF -f "$list" || true)
+          tree=$(git grep -l -F -f "$list" -- . || true)
+          tree_count=$(printf '%s' "$tree" | grep -c . || true)
+          echo "history hits: $hist"
+          echo "tree files with hits: $tree_count"
+          test "$hist" = "0" && test "$tree_count" = "0"

@@ -1,12 +1,15 @@
 # Changelog
 
+## 0.2.0 (LAB conversion)
+
+- Imported without history as agent-mcp-door-demo-LAB; hosted-build material removed (Docker only), hosts and notes scrubbed.
+- Story is now `diagram-studio/1` data loaded by name, with `{{castBrand}}`, `{{castProgram}}` and `{{castHost}}` tokens.
+- Participant boxes are movable; Simulate, Speed, Reset (restores boxes) and the movie reel.
+- Mock / Live toggle on every view (Live disabled: no live backend), `MODE` setting, shared settings loader (own keys only), workspace id, mock W3C `traceparent` per hop.
+- Vendored shared stylesheet and the CSS standard; fonts bundled.
+- Netguard mutation test, doctor and reset by workspace, talk track and content pack generated from the story, hosted-runner CI on Node 22.
+
 ## 0.1.0
 
-- Opens with the catalog pattern shared by every personal-agent flow: the company publishes its connector to the AI assistant's catalog once, members add it free (9 participants, 22 messages, 9 hops).
-- `MODE=mock` is the only mode (anything else is refused); `GET /api/info` says what this build is.
-- Learning Hub content pack built from the story data; `#hop-N` links open a hop.
-- Ports 6850-6879 (6720 was inside another demo's reserved range).
-
-- First slice: a React Flow sequence diagram of a member's own AI agent meeting an enterprise MCP door (first slice: 8 participants, 18 messages, 8 hops), with a monospace payload or mock token under each message, Simulate, step time, the movie reel, a talk track, presenter mode and Reset.
-- Mock only: no tenant, no outbound network (netguard with a self-test), loopback bind, same-origin writes, `GET /api/health` (demo-health/1), `npm run doctor`, `npm run reset`.
-- Brand-neutral by default; `customer.config.json` sets the brand, program and host.
+- Catalog pattern opening (9 participants, 22 messages, 9 hops), payloads and mock tokens, talk track, presenter mode, Reset, doctor, health (demo-health/1), content pack.
+- Mock only: no tenant, no outbound network (netguard with a self-test), loopback bind, same-origin writes.

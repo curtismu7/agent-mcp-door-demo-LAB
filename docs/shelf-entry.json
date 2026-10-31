@@ -4,12 +4,13 @@
       "id": "agent-mcp-door-demo",
       "name": "Agent Meets the MCP Door LAB",
       "kind": "Demo",
-      "description": "A member's own AI agent reaches an enterprise MCP door: discover, register, consent, per-call token exchange, gateway, policy decision, human approval, audit. React Flow sequence diagram with a payload or mock token under each message, talk track and presenter mode. Mock only.",
+      "description": "A member's own AI agent reaches an enterprise MCP door: discover, register, consent, per-call token exchange, gateway, policy decision, human approval, audit. Movable React Flow sequence diagram with a payload or mock token under each message, talk track and presenter mode. Mock only.",
       "url": "http://localhost:6850",
       "healthPath": "/api/health",
       "composeFile": "docker-compose.yml",
       "composeOverlays": [],
-      "notes": "Host-run: ./scripts/run.sh (port 6850). Mock only: no tenant, no credentials. Docker: HOST_PORT=6850 docker compose up --build -d (published on 127.0.0.1 only). Brand it with customer.config.json (see customer.config.example.json)."
+      "notes": "Host-run: ./scripts/run.sh (port 6850). Mock only: no tenant, no credentials. Docker: HOST_PORT=6850 docker compose up --build -d (published on 127.0.0.1 only). Brand it with customer.config.json (see customer.config.example.json).",
+      "catalogId": "D21"
     }
   ]
 }

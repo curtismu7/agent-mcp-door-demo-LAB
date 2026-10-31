@@ -1,37 +1,107 @@
 # Agent Meets the MCP Door LAB
 
+A member's own AI agent reaches an enterprise's MCP door, hop by hop, as a movable React Flow sequence diagram with the wire form or a mock token under every message.
+
 Tier: Demo
 Repo: https://github.com/ping-sandbox/agent-mcp-door-demo-LAB
+Catalog: D21 (provisional: the nearest row, "Personal agent"; confirm with the owner before the Learning Hub pack ships)
 
-A member's own AI agent reaches an enterprise's MCP door. Like every personal-agent flow in this family it starts with the catalog pattern: the company publishes its connector to the AI assistant's catalog once (for example ChatGPT's app directory) and members add it for free, with nothing to install. The walkthrough is a React Flow sequence diagram: discover, register, consent, per-call token exchange, gateway, policy decision, human approval, audit. Under each message sits the wire form or the (mock) token, so you can read `sub`, `act.client_id`, a single `aud` and a minutes-long lifetime. A talk track says what to tell the room at each hop.
+The walkthrough: the company publishes its connector to the AI assistant's catalog once, members add it for free, then discover, register, consent, per-call token exchange, gateway, policy decision, human approval, audit. Under each message sits the wire form or the mock token, so you can read `sub`, `act.client_id`, a single `aud` and a minutes-long lifetime. A talk track says what to tell the room at each hop.
 
-Mock only. Every host ends in `.example`, every token is a labelled teaching value, and the app makes no outbound network request (a netguard blocks them and tests prove it). It needs no tenant and no credentials.
+## What is simulated
 
-## Run
+**Mock mode (the default, and the only mode).** Everything runs in this process with no setup: the story, every host (all end in `.example` or `.invalid`), every token (labelled "MOCK: teaching values only"), the approval, and the W3C `traceparent` shown for each hop. A netguard refuses every non-loopback socket, DNS lookup, fetch and UDP send, and a test proves zero attempts. No tenant, no credentials, no outbound network.
 
+**Live mode.** This app has none, so the Live button in the header is shown but disabled, with the reason beside it. `MODE=live` is refused, never silently turned into mock. The banner says what is simulated on every view, presenter mode included.
+
+## Run from a clone
+
+Prerequisites: Node 22 or newer. Docker only for the Docker form.
+
+```sh
+git clone https://github.com/ping-sandbox/agent-mcp-door-demo-LAB.git
+cd agent-mcp-door-demo-LAB
+npm ci
+npm run build
+npm start
 ```
-./scripts/run.sh          # installs, builds, runs the doctor, starts; then open http://localhost:6850/
+
+Open http://127.0.0.1:6850/ . In mock mode everything works with no setup: no settings file, no tenant, no credentials. `./scripts/run.sh` does the install, build, doctor and start in one go.
+
+Using it:
+
+- **Talk track:** pick a hop to jump to it; the panel shows what to say. **Simulate** walks the 22 arrows; **Speed** sets the time per step; the **movie reel** jumps to any message and shows its wire form, the participants' details and the mock `traceparent`.
+- **Movable boxes:** drag a participant box along the top; its lifeline and every arrow move with it. **Reset** (step bar) or **Reset demo** (header) puts the boxes back and refits the view.
+- **Presenter:** the Presenter button (or `P`) hides the intro and enlarges the talk track. `→` next, `←` back, `Esc` leaves. The banner and the Mock / Live toggle stay.
+- **Workspace:** the Workspace field (default `default`) scopes the mock trace. Two workspaces never share a trace id; **Reset demo** clears the current workspace only.
+- **Branding:** copy `customer.config.example.json` to `customer.config.json` and edit the three cast values (`brand`, `program`, `host`). It is git-ignored and read on every request. The story text uses `{{castBrand}}`, `{{castProgram}}` and `{{castHost}}` tokens, and a test fails on any undefined token.
+- **Diagram data:** the story is `diagram-studio/1` JSON in `server/diagrams/` (`mcp-door.json`, plus `mcp-door.annotations.json` for the payloads and reel details), loaded by name. Nothing builds nodes or edges by hand.
+
+## Settings file
+
+All standalone apps read one settings file, `~/Development/.env`, which should be mode 600. Set `STANDALONE_ENV` to read a different file. This app reads only the keys below; every other line in the file (and so every admin or worker credential that might be there) is ignored. All keys are optional.
+
+- `MODE`: `mock` (the only mode; anything else is refused).
+- `PORT`: the listen port, 6850-6879 (default 6850).
+- `MCPDOOR_BIND`: the bind address (default `127.0.0.1`; the Docker image sets `0.0.0.0` inside the container only).
+- `CUSTOMER_CONFIG`: path to a `customer.config.json` (default: the one in the repo root).
+
+A value already in the environment wins over the file. `npm run doctor` reports the key names it used, never the values.
+
+## Ports, and what to do if the port is taken
+
+Ports: agent-mcp-door-demo-LAB listens on 6850 (set with `PORT`, default 6850).
+Port range for this app: 6850-6879.
+
+The Vite dev server (`npm run dev`) uses `VITE_PORT` (default 6851) and proxies `/api` to `PORT`. The Docker host port is `HOST_PORT` (default 6850).
+
+If the port is taken:
+1. Find what is using it:
+   `lsof -iTCP:6850 -sTCP:LISTEN -n -P`
+2. If it is an old copy of this app, stop that process: `kill <PID>`.
+3. If it is something else, stop it, or start this app on another port:
+   `PORT=6851 npm start`
+4. Do not use 8080, 5173, 3000, 4000, 4400, 4510, 4600-4601, 18080, 19080 or 19090.
+
+## Mock and live modes
+
+The header of the page has a **Mock / Live** toggle, and the banner shows the same mode. Mock is pressed. Live is disabled because this walkthrough has no live backend; hover it, or read the hint beside it, for the reason. `GET /api/mode` returns `{ mode, available, live }`, and there is no route that switches mode.
+
+## Health, doctor and reset
+
+```sh
+npm run doctor        # checks node, mode, bind, port, story data, tokens, hosts, trace, netguard, and whether the app answers
+npm run reset         # clears the default workspace's mock trace on the running app: npm run reset -- <workspace>
 ```
 
-or, step by step: `npm ci && npm run build && npm run doctor && npm start`. With Docker (OrbStack): `HOST_PORT=6850 docker compose up --build -d` (published on `127.0.0.1` only).
+`GET /api/health` answers `demo-health/1` (public, GET only, no detail): `{ schema, at, state, runtime: "offline", demo: { id, name, version } }`. `POST /api/reset` (same origin, header `X-Workspace`) clears one workspace. Saved settings are never touched.
 
-| Command | What it does |
-| --- | --- |
-| `npm test` | server (node:test), web (vitest) and repo checks |
-| `npm run doctor` | preflight: node, bind, port, story shape, hosts, keys, netguard, port free |
-| `npm run content-pack` | rebuilds and validates `content-pack.json` |
-| `npm run reset` | confirms a reset on a running server (the walkthrough itself lives in the browser) |
+## Docker (optional)
 
-Port range 6850-6879 (default 6850). `GET /api/health` answers `demo-health/1`.
+```sh
+docker compose up --build -d
+```
 
-## Using it
+Publishes `127.0.0.1:6850` only (a test pins it); the container is read-only, runs as a non-root user and drops all capabilities. Pick another host port with `HOST_PORT=6851 docker compose up --build -d`. The shared settings file is not mounted: mock mode needs none.
 
-- **Talk track:** pick a hop to jump to it; the panel shows what to say. **Simulate** (step bar) walks the 22 arrows; **Step time** sets the speed; the **movie reel** jumps to any message and scrolls the diagram to it.
-- **Presenter:** the Presenter button (or `P`) hides the intro and enlarges the talk track. `→` next, `←` back, `Esc` leaves. The simulation banner stays.
-- **Reset demo:** stops the walkthrough and refits the diagram. The step bar's own Reset does the same without the API call.
-- **Branding:** copy `customer.config.example.json` to `customer.config.json` and edit the three cast values. It is git-ignored and read on every request.
+## Tests
 
-## Notes
+```sh
+npm test
+```
 
-- Learning Hub: `content-pack.json` (`demo-content-pack/1`, built by `npm run content-pack` from the same story data, so it cannot drift). Cards open a hop with `/#hop-3`. 
-- Hardening: errors are short JSON (no stack or path), only `.example` and `.invalid` hosts are reserved, a customer value that names a URL, host or address keeps the default, and each of those guards has a test that fails when the guard is removed.
+`npm test` runs the server tests (`node --test test/*.test.js`), the web tests (vitest) and the repo checks (`node --test scripts/*.test.mjs`). On Node 22: 62 server + 21 web + 21 repo checks (20 run, 1 skipped unless `LEARNING_HUB_DIR` is set), all passing. Set `LEARNING_HUB_DIR` to a Learning Hub checkout to also run the pack through the hub's own validator.
+
+## Troubleshooting
+
+- **Port is taken:** see "Ports, and what to do if the port is taken" above.
+- **"MODE=live is not available":** this app has a mock mode only. Remove `MODE` from the environment and from the shared settings file.
+- **The page says "Could not load the walkthrough":** run `npm run doctor`; it names the failing check. If the web build is missing, run `npm run build`.
+- **Reset says the server did not answer:** the page's own view was reset but the app is not running; start it with `npm start`.
+- **A name did not change:** `customer.config.json` takes `brand`, `program` and `host` only, and a value that looks like a URL, host or address keeps the default.
+
+## Ownership
+
+- Owner: the Ping demo family owner (see the parent repo).
+- License: MIT (see `LICENSE`). This is an independent community demo; it is not created, endorsed or supported by Ping Identity.
+- Found a problem? Open an issue on the repo.

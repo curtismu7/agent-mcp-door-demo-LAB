@@ -1,6 +1,6 @@
 {
   "name": "@agent-mcp-door-demo/web",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "React + Vite UI for the MCP door walkthrough. Talks only to its own origin.",
