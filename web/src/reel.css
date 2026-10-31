@@ -1,0 +1,143 @@
+/* The movie reel and its details row under the diagram. Tokens only. */
+.reel {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.reel__strip {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 2px 2px 8px;
+  list-style: none;
+  overflow-x: auto;
+}
+
+.reel__strip > li {
+  flex: 0 0 auto;
+}
+
+.reel__card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 8px;
+  align-items: start;
+  width: 220px;
+  min-height: 64px;
+  padding: 8px 10px;
+  font-weight: 400;
+  text-align: left;
+}
+
+.reel__card[data-state="done"] {
+  background: var(--surface-2);
+}
+
+.reel__card[data-state="now"] {
+  border-color: var(--status-info);
+  box-shadow: 0 0 0 2px var(--status-info);
+}
+
+.reel__n {
+  grid-row: 1 / span 2;
+  min-width: 22px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--muted);
+  color: var(--surface);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  text-align: center;
+}
+
+.reel__card[data-state="now"] .reel__n {
+  background: var(--status-info);
+}
+
+.reel__title {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.reel__label {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.3;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* The details row is in page flow under the reel: opening it grows the page, not the reel or the diagram. */
+.reel__detail {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.reel__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reel__head h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.reel__detail-label {
+  margin: 4px 0 0;
+  color: var(--status-info);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.reel__lines {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 0;
+}
+
+.reel__lines dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.reel__lines dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.reel__empty {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.reel__code {
+  max-height: 260px;
+  margin: 0;
+  padding: 8px 10px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
