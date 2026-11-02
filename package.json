@@ -13,6 +13,7 @@
     "node": ">=26"
   },
   "scripts": {
+    "prestart": "node scripts/shelf-register.mjs",
     "start": "npm start -w server",
     "build": "npm run build -w web",
     "test": "npm test -w server && npm test -w web && node --test scripts/*.test.mjs",
