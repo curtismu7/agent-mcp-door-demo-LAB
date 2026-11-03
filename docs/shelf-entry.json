@@ -11,5 +11,9 @@
       "composeOverlays": [],
       "notes": "Host-run: ./scripts/run.sh (port 6850). Mock only: no tenant, no credentials. Docker: HOST_PORT=6850 docker compose up --build -d (published on 127.0.0.1 only). Brand it with customer.config.json (see customer.config.example.json). No catalog row yet: catalogId to be decided by the owner."
     }
+  ],
+  "pingProducts": [
+    "privilege-gateway",
+    "pingone"
   ]
 }
