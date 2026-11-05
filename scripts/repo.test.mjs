@@ -80,7 +80,7 @@ test('the README follows the standard: LAB title, Tier, Repo, run from a clone, 
   const r = read('README.md');
   assert.match(r.split('\n')[0], /^# .* LAB$/);
   assert.match(r, /^Tier: Demo$/m);
-  assert.match(r, /^Repo: https:\/\/github.com/curtismu7\/agent-mcp-door-demo-LAB$/m);
+  assert.match(r, /^Repo: https:\/\/github\.com\/curtismu7\/agent-mcp-door-demo-LAB$/m);
   for (const h of ['Run from a clone', 'Settings file', 'what to do if the port is taken', 'Mock and live modes', 'Health, doctor and reset', 'Docker', 'Tests', 'Troubleshooting', 'Ownership']) assert.match(r, new RegExp(`^## .*${h}`, 'im'), h);
   assert.match(r, /demo-health\/1/);
   assert.match(r, /npm run doctor/);
