@@ -8,6 +8,7 @@ import { useStepper } from './hooks/useStepper.js';
 import { REFIT_EVENT } from './hooks/useFit.js';
 import { api, chooseWorkspace, currentWorkspace } from './lib/api.js';
 import { buildNodeDetail, buildReelSteps } from './lib/reel.js';
+import ShelfLink from "./components/ShelfLink.jsx";
 
 export const APP_NAME = 'Agent Meets the MCP Door LAB';
 
@@ -97,6 +98,7 @@ export default function App() {
           </div>
         </div>
         <div className="head__tools">
+            <ShelfLink />
           <ModeToggle info={flow} />
           <form className="workspace" onSubmit={submitWorkspace}>
             <label className="workspace__label" htmlFor="workspace-id">Workspace</label>

@@ -9,6 +9,7 @@ import { createHealth } from './health.js';
 import { buildFlow, loadCast } from './flow.js';
 import { modeFrom, modeInfo } from './config.js';
 import { createWorkspaces, workspaceFrom } from './workspaces.js';
+import { shelfInfo } from './shelfLink.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB_DIST = process.env.WEB_DIST || path.resolve(HERE, '../../web/dist');
@@ -50,6 +51,7 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   });
 
   if (fs.existsSync(path.join(WEB_DIST, 'index.html'))) {
+app.get('/api/shelf', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json(shelfInfo()); }); // the header "Shelf" button
     app.use(express.static(WEB_DIST));
     app.get(/^\/(?!api\/).*/, (_req, res) => res.sendFile(path.join(WEB_DIST, 'index.html')));
   }
