@@ -3,7 +3,7 @@
 A member's own AI agent reaches an enterprise's MCP door, hop by hop, as a movable React Flow sequence diagram with the wire form or a mock token under every message.
 
 Tier: Demo
-Repo: https://github.com/ping-sandbox/agent-mcp-door-demo-LAB
+Repo: https://github.com/curtismu7/agent-mcp-door-demo-LAB
 Catalog: not assigned yet. No existing row matches (D21 is Personal agent (Dot), D25 the connector login demo, D2 the MCP auth lab). The Learning Hub pack carries the proposed new row D56 until the owner assigns one.
 
 The walkthrough: the company publishes its connector to the AI assistant's catalog once, members add it for free, then discover, register, consent, per-call token exchange, gateway, policy decision, human approval, audit. Under each message sits the wire form or the mock token, so you can read `sub`, `act.client_id`, a single `aud` and a minutes-long lifetime. A talk track says what to tell the room at each hop.
@@ -19,7 +19,7 @@ The walkthrough: the company publishes its connector to the AI assistant's catal
 Prerequisites: Node 26 or newer. Docker only for the Docker form.
 
 ```sh
-git clone https://github.com/ping-sandbox/agent-mcp-door-demo-LAB.git
+git clone https://github.com/curtismu7/agent-mcp-door-demo-LAB.git
 cd agent-mcp-door-demo-LAB
 npm ci
 npm run build
