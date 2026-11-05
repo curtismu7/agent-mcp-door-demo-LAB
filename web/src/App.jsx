@@ -98,7 +98,7 @@ export default function App() {
           </div>
         </div>
         <div className="head__tools">
-            <ShelfLink />
+            <ShelfLink headers={() => ({ "x-workspace": currentWorkspace() })} />
           <ModeToggle info={flow} />
           <form className="workspace" onSubmit={submitWorkspace}>
             <label className="workspace__label" htmlFor="workspace-id">Workspace</label>
