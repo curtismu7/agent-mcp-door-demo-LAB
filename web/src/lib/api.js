@@ -23,17 +23,26 @@ export function chooseWorkspace(raw) {
   return id;
 }
 
-async function call(method, path) {
+async function call(method, path, body) {
   const r = await fetch(path, {
     method,
     headers: { 'x-workspace': currentWorkspace(), ...(method === 'GET' ? {} : { 'content-type': 'application/json' }) },
-    ...(method === 'GET' ? {} : { body: '{}' }),
+    ...(method === 'GET' ? {} : { body: JSON.stringify(body ?? {}) }),
   });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  if (!r.ok) {
+    let data = {};
+    try { data = await r.json(); } catch { /* not JSON */ }
+    const err = new Error(data.message || data.error || `HTTP ${r.status}`);
+    err.status = r.status;
+    throw err;
+  }
   return r.json();
 }
 
 export const api = {
   flow: () => call('GET', '/api/flow'),
+  info: () => call('GET', '/api/info'),
+  mode: () => call('GET', '/api/mode'),
+  setMode: (source) => call('POST', '/api/mode', { source }),
   reset: () => call('POST', '/api/reset'),
 };

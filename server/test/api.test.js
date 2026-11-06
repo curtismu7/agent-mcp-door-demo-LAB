@@ -63,9 +63,11 @@ test('unknown API paths are 404 JSON', async () => {
   });
 });
 
-test('GET /api/info says what this build is: mock and simulated', async () => {
+test('GET /api/info says what this build is: mock and simulated, with the rule 19 mode view', async () => {
   await withServer(async (url) => {
-    assert.deepEqual(await (await fetch(`${url}/api/info`)).json(), { mode: 'mock', simulated: true });
+    const j = await (await fetch(`${url}/api/info`)).json();
+    assert.equal(j.mode, 'mock'); assert.equal(j.simulated, true);
+    assert.equal(j.source, 'mock'); assert.equal(j.realAvailable, false); assert.match(j.realReason, /mock only/);
   });
 });
 

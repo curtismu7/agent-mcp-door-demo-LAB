@@ -5,7 +5,7 @@ import { withServer } from './helpers.js';
 
 test('mock is the default mode and the only one; the toggle data says why Live is unavailable', () => {
   assert.deepEqual(MODES, ['mock', 'live']);
-  assert.deepEqual(modeInfo({}), { mode: 'mock', available: ['mock'], live: { available: false, reason: LIVE_UNAVAILABLE } });
+  assert.deepEqual(modeInfo({}), { mode: 'mock', source: 'mock', available: ['mock'], realAvailable: false, realReason: LIVE_UNAVAILABLE, live: { available: false, reason: LIVE_UNAVAILABLE } });
   assert.throws(() => modeInfo({ MODE: 'live' }), /not available/);
   assert.equal(modeFrom({ MODE: '' }), 'mock');
 });
@@ -31,9 +31,26 @@ test('GET /api/mode and /api/flow both report mock with Live unavailable', async
   });
 });
 
-test('there is no way to switch to live over HTTP: POST /api/mode is not a route', async () => {
+test('rule 19: GET /api/info carries source, realAvailable and realReason; POST /api/mode refuses mock→real with 409 and keeps real→mock', async () => {
   await withServer(async (url) => {
-    const r = await fetch(`${url}/api/mode`, { method: 'POST', headers: { 'content-type': 'application/json', origin: url }, body: '{"mode":"live"}' });
-    assert.equal(r.status, 404);
+    const info = await (await fetch(`${url}/api/info`)).json();
+    assert.equal(info.source, 'mock');
+    assert.equal(info.realAvailable, false);
+    assert.match(info.realReason, /mock only/);
+    const refused = await fetch(`${url}/api/mode`, { method: 'POST', headers: { 'content-type': 'application/json', origin: url }, body: '{"source":"real"}' });
+    assert.equal(refused.status, 409);
+    const body = await refused.json();
+    assert.equal(body.error, 'real_not_available');
+    assert.equal(body.realAvailable, false);
+    assert.match(body.realReason, /mock only/);
+    const stay = await fetch(`${url}/api/mode`, { method: 'POST', headers: { 'content-type': 'application/json', origin: url }, body: '{"source":"mock"}' });
+    assert.equal(stay.status, 200);
+    assert.equal((await stay.json()).source, 'mock');
+    for (const b of ['{}', '{"source":"live"}']) {
+      const r = await fetch(`${url}/api/mode`, { method: 'POST', headers: { 'content-type': 'application/json', origin: url }, body: b });
+      assert.equal(r.status, 400, b);
+    }
+    const after = await (await fetch(`${url}/api/info`)).json();
+    assert.equal(after.source, 'mock');
   });
 });

@@ -51,6 +51,11 @@ export default function App() {
   }, []);
   useEffect(() => load(), [load, workspace]);
 
+  // Rule 19: after a mode switch (or a refusal) the view reloads, so the banner and every hop show the mode the server answered with.
+  const [modeNote, setModeNote] = useState('');
+  const onModeSwitched = () => { setModeNote(''); load(); };
+  const onModeRefused = (reason) => setModeNote(reason);
+
   // A Learning Hub card opens a hop with /#hop-3.
   const goTo = stepper.goTo;
   useEffect(() => {
@@ -118,7 +123,7 @@ export default function App() {
               {THEMES.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
             </select>
           </label>
-          <ModeToggle info={flow} />
+          <ModeToggle info={flow} onSwitched={onModeSwitched} onRefused={onModeRefused} />
           <form className="workspace" onSubmit={submitWorkspace}>
             <label className="workspace__label" htmlFor="workspace-id">Workspace</label>
             <input id="workspace-id" className="workspace__input" value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={submitWorkspace} maxLength={32} spellCheck={false} aria-invalid={Boolean(wsError)} />
@@ -127,6 +132,7 @@ export default function App() {
           <button type="button" onClick={reset} title="Stop the walkthrough, put the boxes back and clear this workspace's mock trace">Reset demo</button>
         </div>
         {wsError && <p className="head__error" role="alert">{wsError}</p>}
+        {modeNote && <p className="head__note" role="status" data-testid="mode-note">{modeNote}</p>}
         {resetNote && <p className="head__note" role="status">{resetNote}</p>}
       </header>
 

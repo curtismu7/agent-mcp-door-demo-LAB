@@ -10,8 +10,14 @@ export function modeFrom(env = process.env) {
 }
 
 // What the page needs for its toggle and banner.
+// Rule 19 fields: source (mock|real), realAvailable and realReason — this walkthrough is mock only, so Real is never available.
 export function modeInfo(env = process.env) {
-  return { mode: modeFrom(env), available: ['mock'], live: { available: false, reason: LIVE_UNAVAILABLE } };
+  const mode = modeFrom(env);
+  return {
+    mode, source: 'mock', available: ['mock'],
+    realAvailable: false, realReason: LIVE_UNAVAILABLE,
+    live: { available: false, reason: LIVE_UNAVAILABLE },
+  };
 }
 
 // Reads MODE from the process environment (after the shared settings file has been loaded).

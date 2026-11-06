@@ -6,8 +6,15 @@ import { FLOW } from './testFlow.js';
 afterEach(() => { cleanup(); vi.restoreAllMocks(); window.localStorage.clear(); });
 beforeEach(() => { window.location.hash = ''; });
 
-const mockFetch = (flow = FLOW) => vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => (
-  String(url).endsWith('/api/flow') ? { ok: true, json: async () => flow } : { ok: true, json: async () => ({ reset: 'ok', workspace: 'default', resets: 1 }) }));
+const mockFetch = (flow = FLOW) => vi.spyOn(globalThis, 'fetch').mockImplementation(async (url, init = {}) => {
+  const u = String(url);
+  if (u.endsWith('/api/mode') && init.method === 'POST') {
+    const body = JSON.parse(init.body || '{}');
+    if (body.source === 'real') return { ok: false, status: 409, json: async () => ({ error: 'real_not_available', realAvailable: false, realReason: 'mock only', message: 'This walkthrough has no live backend: it is mock only.' }) };
+    return { ok: true, json: async () => ({ source: 'mock', realAvailable: false, realReason: 'mock only' }) };
+  }
+  return String(u).endsWith('/api/flow') ? { ok: true, json: async () => flow } : { ok: true, json: async () => ({ reset: 'ok', workspace: 'default', resets: 1 }) };
+});
 
 describe('hopFor', () => {
   it('maps a step to its hop and is null when the walkthrough is off', () => {
@@ -19,14 +26,42 @@ describe('hopFor', () => {
 });
 
 describe('App', () => {
-  it('shows the simulation banner, the Mock / Live toggle with Live unavailable, and the story title', async () => {
+  it('shows the simulation banner, the Mock / Real toggle with Real unavailable, and the story title', async () => {
     mockFetch();
     render(<App />);
     expect(await screen.findByText(/meets Test Air/)).toBeTruthy();
     expect(screen.getByTestId('sim-banner').textContent).toMatch(/MOCK. Simulated/);
     expect(screen.getByTestId('mode').textContent).toBe('MOCK');
     expect(screen.getByRole('button', { name: 'Mock' }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByRole('button', { name: 'Live' }).disabled).toBe(true);
+    expect(screen.getByRole('button', { name: 'Real' }).disabled).toBe(true);
+    expect(screen.getByRole('button', { name: 'Real' }).getAttribute('title')).toMatch(/mock only/);
+    expect(screen.getByTestId('live-hint').textContent).toMatch(/mock only/);
+  });
+
+  it('rule 19: mock→mock posts /api/mode with exactly {source} and the view reloads; a refused switch shows the reason and stays mock', async () => {
+    const spy = mockFetch();
+    render(<App />);
+    await screen.findByText(/meets Test Air/);
+    spy.mockClear();
+    fireEvent.click(screen.getByRole('button', { name: 'Mock' }));
+    await waitFor(() => expect(spy.mock.calls.some(([u, o]) => String(u).endsWith('/api/mode') && o?.method === 'POST' && o.body === JSON.stringify({ source: 'mock' }))).toBe(true));
+    // the data reloaded after the switch
+    await waitFor(() => expect(spy.mock.calls.some(([u]) => String(u).endsWith('/api/flow'))).toBe(true));
+    expect(screen.getByTestId('mode').textContent).toBe('MOCK');
+    expect(screen.getByTestId('sim-banner').textContent).toMatch(/MOCK. Simulated/);
+    // Real is disabled: clicking it cannot post
+    const posts = spy.mock.calls.filter(([u, o]) => String(u).endsWith('/api/mode') && o?.method === 'POST').length;
+    fireEvent.click(screen.getByRole('button', { name: 'Real' }));
+    expect(spy.mock.calls.filter(([u, o]) => String(u).endsWith('/api/mode') && o?.method === 'POST').length).toBe(posts);
+  });
+
+  it('rule 19: a 409 from the server (if Real were enabled) shows the reason', async () => {
+    const flow = { ...FLOW, realAvailable: false };
+    mockFetch(flow);
+    render(<App />);
+    await screen.findByText(/meets Test Air/);
+    // Real is disabled with the server's reason in the tooltip and the hint text
+    expect(screen.getByRole('button', { name: 'Real' }).disabled).toBe(true);
     expect(screen.getByTestId('live-hint').textContent).toMatch(/mock only/);
   });
 

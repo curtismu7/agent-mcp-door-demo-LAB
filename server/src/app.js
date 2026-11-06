@@ -7,7 +7,7 @@ import express from 'express';
 import { hostCheck, sameOriginWrites } from './safety.js';
 import { createHealth } from './health.js';
 import { buildFlow, loadCast } from './flow.js';
-import { modeFrom, modeInfo } from './config.js';
+import { LIVE_UNAVAILABLE, modeFrom, modeInfo } from './config.js';
 import { createWorkspaces, workspaceFrom } from './workspaces.js';
 import { shelfInfo } from './shelfLink.js';
 
@@ -34,9 +34,17 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   });
   // Read on every request so editing customer.config.json shows up on reload.
   api.get('/flow', (req, res) => { res.set('Cache-Control', 'no-store'); res.json({ ...buildFlow(loadCast(configFile), { workspace: req.workspace }), ...modeInfo() }); });
-  // What this build is, and the Mock / Live toggle's state: mock is the only mode.
-  api.get('/info', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json({ mode: modeFrom(), simulated: true }); });
+  // What this build is, and the Mock / Real toggle's state: mock is the only mode.
+  api.get('/info', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json({ mode: modeFrom(), ...modeInfo(), simulated: true }); });
   api.get('/mode', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json(modeInfo()); });
+  // Rule 19: the toggle's switch. This lab is mock only, so mock→real is refused 409 and real→mock stays mock.
+  api.post('/mode', (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    const next = req.body?.source;
+    if (next !== 'mock' && next !== 'real') return res.status(400).json({ error: 'bad_mode', message: 'source must be exactly "mock" or "real"' });
+    if (next === 'real') return res.status(409).json({ ...modeInfo(), error: 'real_not_available', message: LIVE_UNAVAILABLE });
+    return res.json(modeInfo());
+  });
   // Reset clears this workspace's mock trace (a new trace id) and nothing else; other workspaces are untouched.
   api.post('/reset', (req, res) => { const w = workspaces.reset(req.workspace.id); res.json({ reset: 'ok', workspace: w.id, resets: w.resets }); });
   api.use((_req, res) => res.status(404).json({ error: 'not_found' }));
