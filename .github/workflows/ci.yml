@@ -20,6 +20,8 @@ jobs:
       - run: npm ci
       - name: Test (server, web, repo checks)
         run: npm test
+      # The vendored shared stylesheet must match the hash pinned when it was last re-vendored.
+      - run: bash scripts/check-ui-standard.sh
       - name: Build
         run: npm run build
       - name: Content pack validates
