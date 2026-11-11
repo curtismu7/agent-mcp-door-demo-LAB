@@ -23,4 +23,4 @@ Tier: Demo. A member's own AI agent reaches an enterprise MCP door: a movable Re
 - Styling: the vendored `web/src/standalone-ui.css` is byte-identical to the parent's `shared/standalone-ui.css` (never edit it; re-vendor). App CSS: tokens only, no colour literals, no `!important`, no italics, no `prefers-color-scheme`, no id selectors, kebab-case BEM, breakpoints 600 and 900. A repo test checks it.
 - Diagram text is rendered as text, never HTML. A row's height comes from explicit line breaks, so `wrapText` breaks long messages; payloads are monospace.
 - Do not use `crypto.generateKeyPair(Sync)` for EC. Show tokens raw (education) but never a real credential.
-- Never print the forbidden-strings list; scan with counts only. Commits end with the Co-Authored-By line.
+- Never print the forbidden-strings list; scan with counts only. No AI attribution anywhere (owner, 2026-11-07): no Co-Authored-By trailer and no "Generated with" line in commits, PR bodies or files; CI runs `scripts/check-no-ai-attribution.sh`.
