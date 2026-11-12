@@ -3,15 +3,20 @@ import SequenceDiagram from './components/SequenceDiagram.jsx';
 import StepBar from './components/StepBar.jsx';
 import Reel from './components/Reel.jsx';
 import ActorHeader from './components/ActorHeader.jsx';
-import ModeToggle from './components/ModeToggle.jsx';
 import { useStepper } from './hooks/useStepper.js';
 import { REFIT_EVENT } from './hooks/useFit.js';
 import { api, chooseWorkspace, currentWorkspace } from './lib/api.js';
 import { buildNodeDetail, buildReelSteps } from './lib/reel.js';
 import ShelfLink from "./components/ShelfLink.jsx";
+import TopMenu, { applyFontSize } from './top-menu/TopMenu.jsx';
 
 const THEME_KEY = "mcpdoor.theme";
 const THEMES = [["auto", "Auto"], ["light", "Light"], ["dark", "Dark"]];
+const FONT_KEY = "mcpdoor.font";
+function initialFont() {
+  try { const f = localStorage.getItem(FONT_KEY); if (["S", "M", "L"].includes(f)) return f; } catch { /* storage blocked */ }
+  return "M";
+}
 function initialTheme() {
   try { const t = localStorage.getItem(THEME_KEY); if (t === "light" || t === "dark") return t; } catch { /* storage blocked */ }
   return "auto";
@@ -36,12 +41,17 @@ export default function App() {
   const [nodeDetail, setNodeDetail] = useState(null);
   const [resetNote, setResetNote] = useState('');
   const [theme, setTheme] = useState(initialTheme);
+  const [fontStep, setFontStep] = useState(initialFont);
   const pickTheme = (next) => {
     try { if (next === "auto") localStorage.removeItem(THEME_KEY); else localStorage.setItem(THEME_KEY, next); } catch { /* not remembered */ }
     setTheme(next);
   };
   // The picker only sets data-theme; the shared stylesheet does the rest ("auto" follows the system setting).
   useEffect(() => { if (theme === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = theme; }, [theme]);
+  useEffect(() => {
+    applyFontSize(fontStep);
+    try { localStorage.setItem(FONT_KEY, fontStep); } catch { /* not remembered */ }
+  }, [fontStep]);
   const stepper = useStepper(flow ? flow.diagram.edges.length : 0);
 
   const load = useCallback(() => {
@@ -117,19 +127,20 @@ export default function App() {
           </div>
         </div>
         <div className="head__tools">
+          <TopMenu
+            mode={flow ? { value: flow.source === "real" ? "real" : "mock", onChange: async (v) => { if (v === "real" && !flow.realAvailable) { onModeRefused(flow.realReason || 'No live backend'); return; } try { await api.setMode(v); onModeSwitched(); } catch (e) { onModeRefused(e.message || 'No live backend'); } }, realAvailable: Boolean(flow.realAvailable), realHint: flow.realReason || 'No live backend' } : undefined}
+            theme={{ value: theme, onChange: pickTheme }}
+            fontSize={{ value: fontStep, onChange: setFontStep }}
+            present={{ active: presenter, onToggle: () => setPresenter((v) => !v), label: "Presenter" }}
+            help={{ href: "https://github.com/curtismu7/agent-mcp-door-demo-LAB#readme" }}
+            onReset={reset}
+          >
             <ShelfLink headers={() => ({ "x-workspace": currentWorkspace() })} />
-          <label className="shell-theme">Theme
-            <select value={theme} onChange={(e) => pickTheme(e.target.value)}>
-              {THEMES.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
-            </select>
-          </label>
-          <ModeToggle info={flow} onSwitched={onModeSwitched} onRefused={onModeRefused} />
+          </TopMenu>
           <form className="workspace" onSubmit={submitWorkspace}>
             <label className="workspace__label" htmlFor="workspace-id">Workspace</label>
             <input id="workspace-id" className="workspace__input" value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={submitWorkspace} maxLength={32} spellCheck={false} aria-invalid={Boolean(wsError)} />
           </form>
-          <button type="button" onClick={() => setPresenter((v) => !v)} aria-pressed={presenter}>{presenter ? 'Exit presenter' : 'Presenter'}</button>
-          <button type="button" onClick={reset} title="Stop the walkthrough, put the boxes back and clear this workspace's mock trace">Reset demo</button>
         </div>
         {wsError && <p className="head__error" role="alert">{wsError}</p>}
         {modeNote && <p className="head__note" role="status" data-testid="mode-note">{modeNote}</p>}

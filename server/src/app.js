@@ -35,7 +35,7 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   // Read on every request so editing customer.config.json shows up on reload.
   api.get('/flow', (req, res) => { res.set('Cache-Control', 'no-store'); res.json({ ...buildFlow(loadCast(configFile), { workspace: req.workspace }), ...modeInfo() }); });
   // What this build is, and the Mock / Real toggle's state: mock is the only mode.
-  api.get('/info', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json({ mode: modeFrom(), ...modeInfo(), simulated: true }); });
+  api.get('/info', (_req, res) => { res.set('Cache-Control', 'no-store'); let version = null; try { version = JSON.parse(fs.readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version || null; } catch { /* no version */ } res.json({ mode: modeFrom(), ...modeInfo(), simulated: true, version }); });
   api.get('/mode', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json(modeInfo()); });
   // Rule 19: the toggle's switch. This lab is mock only, so mock→real is refused 409 and real→mock stays mock.
   api.post('/mode', (req, res) => {

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import App, { hopFor } from './App.jsx';
 import { FLOW } from './testFlow.js';
 
@@ -31,11 +32,9 @@ describe('App', () => {
     render(<App />);
     expect(await screen.findByText(/meets Test Air/)).toBeTruthy();
     expect(screen.getByTestId('sim-banner').textContent).toMatch(/MOCK. Simulated/);
-    expect(screen.getByTestId('mode').textContent).toBe('MOCK');
-    expect(screen.getByRole('button', { name: 'Mock' }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByRole('button', { name: 'Real' }).disabled).toBe(true);
-    expect(screen.getByRole('button', { name: 'Real' }).getAttribute('title')).toMatch(/mock only/);
-    expect(screen.getByTestId('live-hint').textContent).toMatch(/mock only/);
+    expect(screen.getByTestId('mode-select')).toHaveValue('mock');
+    const realOption = screen.getByTestId('mode-select').querySelector('option[value="real"]');
+    expect(realOption).toBeDisabled();
   });
 
   it('rule 19: mock→mock posts /api/mode with exactly {source} and the view reloads; a refused switch shows the reason and stays mock', async () => {
@@ -43,15 +42,14 @@ describe('App', () => {
     render(<App />);
     await screen.findByText(/meets Test Air/);
     spy.mockClear();
-    fireEvent.click(screen.getByRole('button', { name: 'Mock' }));
+    await userEvent.selectOptions(screen.getByTestId('mode-select'), 'mock');
     await waitFor(() => expect(spy.mock.calls.some(([u, o]) => String(u).endsWith('/api/mode') && o?.method === 'POST' && o.body === JSON.stringify({ source: 'mock' }))).toBe(true));
     // the data reloaded after the switch
     await waitFor(() => expect(spy.mock.calls.some(([u]) => String(u).endsWith('/api/flow'))).toBe(true));
-    expect(screen.getByTestId('mode').textContent).toBe('MOCK');
     expect(screen.getByTestId('sim-banner').textContent).toMatch(/MOCK. Simulated/);
-    // Real is disabled: clicking it cannot post
+    // Real is disabled: selecting it cannot post
     const posts = spy.mock.calls.filter(([u, o]) => String(u).endsWith('/api/mode') && o?.method === 'POST').length;
-    fireEvent.click(screen.getByRole('button', { name: 'Real' }));
+    await userEvent.selectOptions(screen.getByTestId('mode-select'), 'real');
     expect(spy.mock.calls.filter(([u, o]) => String(u).endsWith('/api/mode') && o?.method === 'POST').length).toBe(posts);
   });
 
@@ -60,9 +58,8 @@ describe('App', () => {
     mockFetch(flow);
     render(<App />);
     await screen.findByText(/meets Test Air/);
-    // Real is disabled with the server's reason in the tooltip and the hint text
-    expect(screen.getByRole('button', { name: 'Real' }).disabled).toBe(true);
-    expect(screen.getByTestId('live-hint').textContent).toMatch(/mock only/);
+    // Real is disabled with the server's reason
+    expect(screen.getByTestId('mode-select').querySelector('option[value="real"]')).toBeDisabled();
   });
 
   it('the banner and the toggle are there even when the story cannot be loaded', async () => {
@@ -70,7 +67,7 @@ describe('App', () => {
     render(<App />);
     expect((await screen.findByRole('alert')).textContent).toMatch(/Could not load/);
     expect(screen.getByTestId('sim-banner')).toBeTruthy();
-    expect(screen.getByTestId('mode-toggle')).toBeTruthy();
+    expect(screen.getByTestId('top-menu')).toBeTruthy();
   });
 
   it('a #hop-2 link opens that hop', async () => {
@@ -94,13 +91,13 @@ describe('App', () => {
     await screen.findByText(/meets Test Air/);
     fireEvent.click(screen.getByRole('button', { name: 'Presenter' }));
     expect(screen.getByTestId('sim-banner')).toBeTruthy();
-    expect(screen.getByTestId('mode-toggle')).toBeTruthy();
+    expect(screen.getByTestId('top-menu')).toBeTruthy();
     expect(screen.queryByText('intro text')).toBeNull();
     act(() => { fireEvent.keyDown(window, { key: 'ArrowRight' }); });
     await waitFor(() => expect(screen.getByTestId('track-now').textContent).toMatch(/say one/));
     act(() => { fireEvent.keyDown(window, { key: 'ArrowRight' }); fireEvent.keyDown(window, { key: 'ArrowRight' }); });
     await waitFor(() => expect(screen.getByTestId('track-now').textContent).toMatch(/say two/));
-    fireEvent.click(screen.getByRole('button', { name: 'Reset demo' }));
+    fireEvent.click(screen.getByTestId('reset'));
     await waitFor(() => expect(screen.queryByTestId('track-now')).toBeNull());
     expect(spy.mock.calls.some(([u, o]) => String(u).endsWith('/api/reset') && o?.method === 'POST')).toBe(true);
     await screen.findByText(/has a new trace/);

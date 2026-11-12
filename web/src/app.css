@@ -12,7 +12,10 @@
   justify-content: space-between;
   gap: 16px;
   padding: 16px 0 8px;
+  position: relative;
 }
+
+html { font-size: var(--fs, 16px); }
 
 .head__brand {
   display: flex;
