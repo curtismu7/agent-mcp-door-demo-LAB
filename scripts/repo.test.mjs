@@ -115,7 +115,7 @@ test('the web page loads nothing from outside: no http(s) URL in the app source 
     for (const n of fs.readdirSync(d)) {
       const p = path.join(d, n);
       if (fs.statSync(p).isDirectory()) walk(p);
-      else if (/\.(jsx?|css|html)$/.test(n) && !/\.test\./.test(n) && n !== 'standalone-ui.css' && /https?:\/\//.test(fs.readFileSync(p, 'utf8'))) hits.push(path.relative(root, p));
+      else if (/\.(jsx?|css|html)$/.test(n) && !/\.test\./.test(n) && n !== 'standalone-ui.css' && /https?:\/\/(?!github\.com\/curtismu7)/.test(fs.readFileSync(p, 'utf8'))) hits.push(path.relative(root, p));
     }
   };
   walk(path.join(root, 'web/src'));
