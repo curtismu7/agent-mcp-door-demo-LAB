@@ -30,8 +30,8 @@ test('control: the unmodified guard passes its own self-test in a child process'
 });
 
 const MUTATIONS = {
-  'fetch guard removed': (s) => s.replace('if (!isLoopbackHost(url.hostname)) {', 'if (false) {'),
-  'fetch attempts not recorded': (s) => s.replace("attempts.push(`fetch:${url.hostname}`);", ''),
+  'fetch guard removed': (s) => s.replace('if (!isLoopbackHost(url.hostname) && !originAllowed(url.hostname)) {', 'if (false) {'),
+  'fetch attempts not recorded': (s) => s.replace("attempts.push(`fetch:${url.hostname}`);", '').replace("attempts.push(`fetch:${url.hostname}`)", ''),
   'udp guard removed': (s) => s.replace('const ok = addr === undefined', 'const ok = true || addr === undefined'),
 };
 
