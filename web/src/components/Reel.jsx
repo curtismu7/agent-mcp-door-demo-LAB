@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import '../reel.css';
+import PayloadJson from './PayloadJson.jsx';
+import { splitPayload } from '../lib/payload.js';
+
+// Wire text stays text; a payload that carries JSON (the mock token's claims) goes through the shared JsonPane.
+function Code({ text }) {
+  const parts = splitPayload(text);
+  return parts ? <PayloadJson parts={parts} /> : <pre className="reel__code">{text}</pre>;
+}
 
 // The movie reel under the diagram: one card per arrow in walk order. A click jumps there (and pauses) and opens the
 // details row below the reel, in normal page flow. A click on a box in the diagram passes `nodeDetail` to show that box.
@@ -52,7 +60,7 @@ export default function Reel({ steps, stepper, nodeDetail = null, onClearNode })
               {panel.lines.map((l) => (
                 <div key={`${l.who}-${l.code || l.text}`}>
                   {l.who && <dt>{l.who}</dt>}
-                  <dd>{l.code ? <pre className="reel__code">{l.code}</pre> : l.text}</dd>
+                  <dd>{l.code ? <Code text={l.code} /> : l.text}</dd>
                 </div>
               ))}
             </dl>

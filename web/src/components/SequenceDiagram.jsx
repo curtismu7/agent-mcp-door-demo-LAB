@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   BaseEdge, Background, BackgroundVariant, Controls, EdgeLabelRenderer, getStraightPath, Handle, Position,
   ReactFlow, ReactFlowProvider, useReactFlow,
@@ -7,6 +7,8 @@ import '@xyflow/react/dist/style.css';
 import '../diagram.css';
 import { FIT, MIN_ZOOM, baseX, buildSequenceFlow, clampOffset, flowWidth, markNodes, stepEdges } from '../lib/layout.js';
 import { REFIT_EVENT, useFit } from '../hooks/useFit.js';
+import { splitPayload } from '../lib/payload.js';
+import PayloadJson from './PayloadJson.jsx';
 
 // A participant box. Boxes are movable along the top: dragging one slides its lifeline and every arrow with it.
 function Participant({ data }) {
@@ -30,8 +32,23 @@ function Anchor() {
   );
 }
 const Band = ({ data }) => <div className="seq-band" style={{ width: data.w }}>{data.text}</div>;
-// The wire form or mock token under its message.
-const Payload = ({ data }) => <pre className="seq-payload" style={{ width: data.w }}>{data.text}</pre>;
+// The wire form or mock token under its message. Wire text is a fixed-size pre (the layout counts its lines). A payload that carries JSON
+// goes through the shared JsonPane, whose height changes with Form | JSON, so it reports its height and the layout makes room for it.
+const PayloadHeight = createContext(() => {});
+function Payload({ data }) {
+  const parts = useMemo(() => splitPayload(data.text), [data.text]);
+  const report = useContext(PayloadHeight);
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const ro = new ResizeObserver(() => report(data.i, Math.ceil(el.offsetHeight)));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [report, data.i, parts]);
+  if (!parts) return <pre className="seq-payload seq-payload--text" style={{ width: data.w }}>{data.text}</pre>;
+  return <div className="seq-payload nodrag nopan" ref={ref} style={{ width: data.w }}><PayloadJson parts={parts} /></div>;
+}
 
 function MessageEdge({ id, sourceX, sourceY, targetX, targetY, style, markerEnd, data }) {
   const [path, labelX, labelY] = getStraightPath({ sourceX, sourceY, targetX, targetY });
@@ -52,8 +69,10 @@ function Inner({ diagram, payloads, stepper, onModel, onPerson, offsets, setOffs
   const ref = useRef(null);
   const flowRef = useRef(null);
   const [canvasW, setCanvasW] = useState(0);
+  const [heights, setHeights] = useState({});
+  const onHeight = useCallback((i, h) => setHeights((o) => (o[i] === h ? o : { ...o, [i]: h })), []);
   const rf = useReactFlow();
-  const model = useMemo(() => buildSequenceFlow(diagram, payloads, offsets), [diagram, payloads, offsets]);
+  const model = useMemo(() => buildSequenceFlow(diagram, payloads, offsets, heights), [diagram, payloads, offsets, heights]);
   useFit(flowRef, FIT, diagram);
   useEffect(() => { onModel(model); }, [model, onModel]);
   useEffect(() => {
@@ -103,25 +122,27 @@ function Inner({ diagram, payloads, stepper, onModel, onPerson, offsets, setOffs
   return (
     <div className="seq-canvas" data-testid="sequence-flow-canvas" ref={ref} style={fitHeight ? { height: fitHeight } : undefined}>
       <div className="seq-flow" ref={flowRef} style={flowW > canvasW ? { width: flowW } : undefined}>
-        <ReactFlow
-          nodes={lit}
-          edges={shown}
-          onNodesChange={onNodesChange}
-          onNodeClick={(_, node) => { if (node.type === 'part') onPerson(node.id.slice(2)); }}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          fitView
-          fitViewOptions={FIT}
-          minZoom={0.2}
-          maxZoom={2}
-          nodesConnectable={false}
-          zoomOnScroll={false}
-          preventScrolling={false}
-          proOptions={{ hideAttribution: true }}
-        >
-          <Background variant={BackgroundVariant.Dots} gap={22} size={1.5} />
-          <Controls showInteractive={false} />
-        </ReactFlow>
+        <PayloadHeight.Provider value={onHeight}>
+          <ReactFlow
+            nodes={lit}
+            edges={shown}
+            onNodesChange={onNodesChange}
+            onNodeClick={(_, node) => { if (node.type === 'part') onPerson(node.id.slice(2)); }}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            fitView
+            fitViewOptions={FIT}
+            minZoom={0.2}
+            maxZoom={2}
+            nodesConnectable={false}
+            zoomOnScroll={false}
+            preventScrolling={false}
+            proOptions={{ hideAttribution: true }}
+          >
+            <Background variant={BackgroundVariant.Dots} gap={22} size={1.5} />
+            <Controls showInteractive={false} />
+          </ReactFlow>
+        </PayloadHeight.Provider>
       </div>
     </div>
   );
