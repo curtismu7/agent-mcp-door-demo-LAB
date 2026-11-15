@@ -88,11 +88,11 @@ test('the README follows the standard: LAB title, Tier, Repo, run from a clone, 
 });
 
 // The CSS standard, checked here so CI catches it without the parent repo: tokens only, no !important, no italics,
-// no prefers-color-scheme, no id selectors, no camelCase classes, breakpoints 600 and 900 only (app stylesheets, not the vendored shared ones: standalone-ui.css and JsonPane.css, each pinned byte for byte by its sha256).
+// no prefers-color-scheme, no id selectors, no camelCase classes, breakpoints 600 and 900 only (app stylesheets, not the vendored shared ones: standalone-ui.css, JsonPane.css and top-menu.css, each vendored byte for byte with its own sha256 pin).
 test('app CSS follows the CSS standard', () => {
   const dir = path.join(root, 'web/src');
   const files = [];
-  const walk = (d) => { for (const n of fs.readdirSync(d)) { const p = path.join(d, n); if (fs.statSync(p).isDirectory()) walk(p); else if (n.endsWith('.css') && n !== 'standalone-ui.css' && n !== 'JsonPane.css') files.push(p); } };
+  const walk = (d) => { for (const n of fs.readdirSync(d)) { const p = path.join(d, n); if (fs.statSync(p).isDirectory()) walk(p); else if (n.endsWith('.css') && n !== 'standalone-ui.css' && n !== 'JsonPane.css' && n !== 'top-menu.css') files.push(p); } };
   walk(dir);
   assert.ok(files.length >= 3);
   for (const f of files) {
