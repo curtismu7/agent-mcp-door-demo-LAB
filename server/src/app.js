@@ -11,6 +11,7 @@ import { LIVE_UNAVAILABLE, modeFrom, modeInfo } from './config.js';
 import { createWorkspaces, workspaceFrom } from './workspaces.js';
 import { shelfInfo } from './shelfLink.js';
 import { readFileSettings, doorConfig, createRealDoor } from './gatewayReal.js';
+import { setAllowedOrigins } from './netguard.js';
 
 // Real mode = the shared gateway hop: an agent key from the shared settings file calling a live Privilege door.
 // The environment wins over the file: AMD_* variables overlay the parsed file text.
@@ -63,6 +64,21 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   });
   // Reset clears this workspace's mock trace (a new trace id) and nothing else; other workspaces are untouched.
   api.post('/reset', (req, res) => { const w = workspaces.reset(req.workspace.id); res.json({ reset: 'ok', workspace: w.id, resets: w.resets }); });
+  // One real gateway check: tools/list through the door, then the gateway's refusal for a tool nothing grants.
+  api.post('/gateway-check', async (req, res) => {
+    const door = realDoorFrom();
+    if (!door) return res.status(409).json({ error: 'real_not_available', message: 'Real is not configured (the AMD_* settings are missing).' });
+    if (req.body && Object.keys(req.body).some((k) => !['app', 'caller'].includes(k))) return res.status(400).json({ error: 'bad_request', detail: 'the only accepted body fields are { "app", "caller" }' });
+    const app = String(req.body?.app || door.apps[0]);
+    if (!door.apps.includes(app)) return res.status(400).json({ error: 'bad_app', detail: `app must be one of ${door.apps.join(', ')}` });
+    const caller = req.body?.caller && door.callers.some((c) => c.id === req.body.caller) ? req.body.caller : door.callers[0].id;
+    setAllowedOrigins([door.origin]); // the netguard's one real outbound: this door's origin
+    const listing = await door.list(app, caller);
+    const out = { app, caller, gateway: door.origin, listing };
+    if (listing.ok) out.refusal = await door.call(app, caller, 'agent_mcp_door_refusal_probe_tool', {});
+    res.json(out);
+  });
+
   api.use((_req, res) => res.status(404).json({ error: 'not_found' }));
   app.get('/api/shelf', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json(shelfInfo()); }); // the header "Shelf" button
   app.use('/api', api);
@@ -80,19 +96,6 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
     app.get(/^\/(?!api\/).*/, (_req, res) => res.sendFile(path.join(WEB_DIST, 'index.html')));
   }
 
-  // One real gateway check: tools/list through the door, then the gateway's refusal for a tool nothing grants.
-  api.post('/gateway-check', async (req, res) => {
-    const door = realDoorFrom();
-    if (!door) return res.status(409).json({ error: 'real_not_available', message: 'Real is not configured (the AMD_* settings are missing).' });
-    if (req.body && Object.keys(req.body).some((k) => !['app', 'caller'].includes(k))) return res.status(400).json({ error: 'bad_request', detail: 'the only accepted body fields are { "app", "caller" }' });
-    const app = String(req.body?.app || door.apps[0]);
-    if (!door.apps.includes(app)) return res.status(400).json({ error: 'bad_app', detail: `app must be one of ${door.apps.join(', ')}` });
-    const caller = req.body?.caller && door.callers.some((c) => c.id === req.body.caller) ? req.body.caller : door.callers[0].id;
-    const listing = await door.list(app, caller);
-    const out = { app, caller, gateway: door.origin, listing };
-    if (listing.ok) out.refusal = await door.call(app, caller, 'agent_mcp_door_refusal_probe_tool', {});
-    res.json(out);
-  });
   return app;
 }
 
