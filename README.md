@@ -105,3 +105,26 @@ npm test
 - Owner: the Ping demo family owner (see the parent repo).
 - License: MIT (see `LICENSE`). This is an independent community demo; it is not created, endorsed or supported by Ping Identity.
 - Found a problem? Open an issue on the repo.
+
+---
+
+## Real mode: through the PingOne Privilege gateway
+
+Real mode here is one live call through the SE PingOne Privilege gateway
+(`https://mcpgw.ai-demo.ping-devops.com`) with an agent access key from the shared settings
+file (`~/Development/.env`, or the file `STANDALONE_ENV` names).
+
+**Privilege objects this lab uses:**
+
+| Object | Value |
+|---|---|
+| Gateway | `mcpgw.ai-demo.ping-devops.com` (cluster `ai-demo-cmuir`) |
+| Door (Agentic App) | `aggregate-limited` — client path `/aggregate-limited/mcp` |
+| Caller | agent access key `AMD_GW_KEY_LAB_AGENT` (write-only, never shown) |
+| Backend | `aggregate` = the gateway's MCP aggregate over `opensearch` (9 tools) + `banking-mcp` (33 tools); `aggregate-limited` = the same members with a tool filter |
+
+**What runs in Real:** the **Privilege gateway check** (`POST /api/gateway-check`, card on the
+page) — one live `tools/list` through the door with the key, then one `tools/call` probe of a
+tool no policy grants, so you see the gateway's own refusal shape. The gateway's words come
+back unaltered (keys scrubbed). Settings keys: `AMD_GW_URL`, `AMD_GW_APPS`,
+`AMD_GW_KEY_<NAME>` (optional `AMD_GW_VERSION`).
