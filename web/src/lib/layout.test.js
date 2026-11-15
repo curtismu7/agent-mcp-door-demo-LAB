@@ -28,6 +28,20 @@ describe('layout', () => {
     expect(wrapText('a b c', 3)).toBe('a b\nc');
   });
 
+  it('a measured payload height pushes the rows below it down; with none measured the line count is used', () => {
+    const base = buildSequenceFlow(D, FLOW.payloads);
+    const same = buildSequenceFlow(D, FLOW.payloads, {}, {});
+    expect(same.rows).toEqual(base.rows);
+    expect(same.bounds).toEqual(base.bounds);
+    const lineHeight = 1 * 15 + 16; // 'a: 1' is one line
+    const taller = buildSequenceFlow(D, FLOW.payloads, {}, { 0: lineHeight + 100 });
+    expect(taller.rows[0]).toBe(base.rows[0]);
+    expect(taller.rows[1] - base.rows[1]).toBe(100);
+    expect(taller.rows[2] - base.rows[2]).toBe(100);
+    expect(taller.bounds.h - base.bounds.h).toBe(100);
+    expect(taller.nodes.find((n) => n.id === 'pl0').data.i).toBe(0);
+  });
+
   it('only participant boxes are draggable', () => {
     const m = buildSequenceFlow(D, FLOW.payloads);
     expect(m.nodes.filter((n) => n.draggable).every((n) => n.type === 'part')).toBe(true);

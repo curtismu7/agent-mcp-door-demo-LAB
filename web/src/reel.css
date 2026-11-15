@@ -128,10 +128,8 @@
 }
 
 .reel__code {
-  max-height: 260px;
   margin: 0;
   padding: 8px 10px;
-  overflow: auto;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--surface-2);
@@ -140,4 +138,22 @@
   line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* A payload with JSON: the caption, then the shared JsonPane (Form | JSON, full view). */
+.reel__lines .payload-caption {
+  margin: 0 0 6px;
+}
+
+.reel__lines .json {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+}
+
+.reel__lines .json--raw {
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.45;
 }

@@ -116,12 +116,12 @@
   stroke-dasharray: 6 4;
 }
 
-/* A wire form or mock token under its message. */
+/* A wire form or mock token under its message. Wire text is a fixed-size pre (the layout counts its lines); a payload with JSON holds the
+   shared JsonPane and grows to its content (its height is measured and the layout makes room). */
 .seq-payload {
   box-sizing: border-box;
   margin: 0;
   padding: 7px 10px;
-  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 4px;
   background: var(--surface-2);
@@ -129,7 +129,28 @@
   font-size: 12px;
   line-height: 15px;
   text-align: left;
+}
+
+.seq-payload--text {
+  overflow: hidden;
   white-space: pre;
+}
+
+.seq-payload .payload-caption {
+  margin: 0 0 4px;
+  font-family: var(--font-mono);
+  white-space: pre-wrap;
+}
+
+.seq-payload .json {
+  margin: 0;
+  background: transparent;
+  font-size: 12px;
+  line-height: 15px;
+}
+
+.seq-payload .json--raw {
+  padding: 0;
 }
 
 .react-flow__node.seq-hot .seq-payload {

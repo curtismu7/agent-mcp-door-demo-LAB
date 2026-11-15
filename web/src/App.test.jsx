@@ -3,9 +3,10 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import userEvent from '@testing-library/user-event';
 import App, { hopFor } from './App.jsx';
 import { FLOW } from './testFlow.js';
+import { setJsonView } from './components/JsonPane.jsx';
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); window.localStorage.clear(); });
-beforeEach(() => { window.location.hash = ''; });
+beforeEach(() => { window.location.hash = ''; setJsonView('form'); });
 
 const mockFetch = (flow = FLOW) => vi.spyOn(globalThis, 'fetch').mockImplementation(async (url, init = {}) => {
   const u = String(url);
@@ -147,5 +148,35 @@ describe('App', () => {
     const detail = await screen.findByTestId('sequence-reel-detail');
     expect(detail.textContent).toMatch(/traceparent \(mock\)/);
     expect(detail.textContent).toMatch(/00-a{32}-2{16}-01/);
+  });
+
+  // Rule 24: a payload that carries JSON (the mock token's claims) goes through the shared JsonPane, in the reel and in the diagram.
+  const TOKEN = 'Per-call token (MOCK)\n{\n  "sub": "<member id>",\n  "aud": "https://mcp.example/rewards",\n  "jti": "<unique id>"\n}';
+  it('rule 24: the reel shows a JSON payload as Form | JSON, and wire text stays a plain pre', async () => {
+    mockFetch({ ...FLOW, payloads: ['a: 1', TOKEN, 'b: 2'] });
+    render(<App />);
+    await screen.findByText(/meets Test Air/);
+    const cards = await waitFor(() => { const c = document.querySelectorAll('.reel__card'); expect(c.length).toBe(3); return c; });
+    fireEvent.click(cards[1]);
+    const detail = await screen.findByTestId('sequence-reel-detail');
+    expect(detail.querySelector('.jsonbox')).toBeTruthy();
+    expect(detail.querySelector('pre.reel__code')?.textContent).toMatch(/00-a{32}-2{16}-01/); // the traceparent is not JSON
+    expect(detail.querySelector('.json--form').textContent).toMatch(/jti/);
+    fireEvent.click(detail.querySelector('.jsonbox__toggle button:last-child'));
+    expect(detail.querySelector('pre.json--raw').textContent).toBe(TOKEN.slice(TOKEN.indexOf('\n') + 1));
+    fireEvent.click(cards[0]);
+    expect((await screen.findByTestId('sequence-reel-detail')).querySelector('.jsonbox')).toBeNull();
+    expect(screen.getByTestId('sequence-reel-detail').querySelector('pre.reel__code').textContent).toBe('a: 1');
+  });
+
+  it('rule 24: the diagram shows the same payload through the JsonPane, and a text payload stays a pre', async () => {
+    mockFetch({ ...FLOW, payloads: ['a: 1', TOKEN, 'b: 2'] });
+    render(<App />);
+    await screen.findByText(/meets Test Air/);
+    await waitFor(() => expect(document.querySelectorAll('.seq-payload').length).toBe(3));
+    const boxes = [...document.querySelectorAll('.seq-payload')];
+    expect(boxes.map((b) => b.tagName)).toEqual(['PRE', 'DIV', 'PRE']);
+    expect(boxes[1].querySelector('.jsonbox')).toBeTruthy();
+    expect(boxes[1].querySelector('.payload-caption').textContent).toBe('Per-call token (MOCK)');
   });
 });
