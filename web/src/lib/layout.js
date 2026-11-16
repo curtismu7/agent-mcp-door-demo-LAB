@@ -1,6 +1,7 @@
 // Turns a diagram-studio/1 document (participants, ordered messages, hops) into the nodes and edges of a React Flow
 // sequence diagram. Pure: no DOM, so it is unit-tested. The participants' x positions come from the data; `offsets`
-// (participant id -> dx) is what dragging a box changes, and Reset clears it.
+// (participant id -> dx) is what dragging a box changes, and Reset clears it. `heights` (message index -> px) is the measured height of a
+// payload whose size the layout cannot count from its lines (one that holds a JSON pane); the others use their line count.
 export const TOP = 120; // room for the participant boxes before the first row
 export const PART_H = 64;
 export const LINE_H = 17;
@@ -39,7 +40,7 @@ export function baseX(diagram, id) {
   return p ? 60 + (p.x - people[0].x) : 0;
 }
 
-export function buildSequenceFlow(diagram, payloads = [], offsets = {}) {
+export function buildSequenceFlow(diagram, payloads = [], offsets = {}, heights = {}) {
   const people = peopleOf(diagram);
   const PART_W = partWidth(people);
   const cx = Object.fromEntries(people.map((p) => [p.id, 60 + (p.x - people[0].x) + PART_W / 2 + clampOffset(offsets[p.id])]));
@@ -91,8 +92,8 @@ export function buildSequenceFlow(diagram, payloads = [], offsets = {}) {
       const left = Math.min(cx[e.source], cx[e.target]) - 12;
       const x = Math.max(Math.min(...allX) - 80, Math.min(left, Math.max(...allX) + 80 - w));
       y += 8;
-      nodes.push({ id: `pl${i}`, type: 'payload', position: { x, y }, data: { text: payload, w }, draggable: false, selectable: false, zIndex: 1 });
-      y += plines.length * PAYLOAD_LINE_H + 16 + 6;
+      nodes.push({ id: `pl${i}`, type: 'payload', position: { x, y }, data: { text: payload, w, i }, draggable: false, selectable: false, zIndex: 1 });
+      y += (heights[i] ?? plines.length * PAYLOAD_LINE_H + 16) + 6;
     }
   });
   const end = y + 30;
