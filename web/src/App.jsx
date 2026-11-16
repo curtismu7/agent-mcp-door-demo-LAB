@@ -8,6 +8,7 @@ import { REFIT_EVENT } from './hooks/useFit.js';
 import { api, chooseWorkspace, currentWorkspace } from './lib/api.js';
 import { buildNodeDetail, buildReelSteps } from './lib/reel.js';
 import ShelfLink from "./components/ShelfLink.jsx";
+import VerifyMark from "./components/VerifyMark.jsx";
 import TopMenu, { applyFontSize } from './top-menu/TopMenu.jsx';
 
 const THEME_KEY = "mcpdoor.theme";
@@ -132,6 +133,7 @@ export default function App() {
           onReset={reset}
         >
           <ShelfLink headers={() => ({ "x-workspace": currentWorkspace() })} />
+          <VerifyMark id="agent-mcp-door-demo" headers={() => ({ "x-workspace": currentWorkspace() })} />
         </TopMenu>
       </header>
     <main id="main" className={`app${presenter ? ' app--presenter' : ''}`}>

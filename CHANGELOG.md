@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Verification mark in the header: the shared `VerifyMark` (vendored byte for byte from AI-DEMO-Standalone `shared/verify-mark`, pinned) shows this lab's Verified / In progress mark from the demo shelf, inside the top menu beside the Shelf link. It reads the same `GET /api/shelf` call the Shelf link makes (with the same `x-workspace` header), so it shows through the lab-proxy and nothing when the lab is opened on its own port, when the shelf has no mark for it, or when the shelf is unreachable.
+
 ## 0.2.0 (LAB conversion)
 
 - Imported without history as agent-mcp-door-demo-LAB; hosted-build material removed (Docker only), hosts and notes scrubbed.
