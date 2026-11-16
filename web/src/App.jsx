@@ -113,41 +113,46 @@ export default function App() {
 
   const modeWord = flow?.mode === 'live' ? 'LIVE' : 'MOCK';
   return (
-    <main className={`app${presenter ? ' app--presenter' : ''}`}>
+    <>
+      <header className="shell-bar">
+        <span className="shell-brand">
+          <img className="shell-logo" src="/ping-logo.png" alt="Ping Identity" width="30" height="30" />
+          <h1>{APP_NAME}</h1>
+          <span className={`shell-badge${flow?.mode === 'live' ? ' shell-badge--real' : ''}`} data-testid="mode-badge">{modeWord}</span>
+        </span>
+        <nav className="shell-nav" aria-label="Pages">
+          <a href="#main" aria-current="page">MCP door</a>
+        </nav>
+        <TopMenu
+          mode={flow ? { value: flow.source === "real" ? "real" : "mock", onChange: async (v) => { if (v === "real" && !flow.realAvailable) { onModeRefused(flow.realReason || 'No live backend'); return; } try { await api.setMode(v); onModeSwitched(); } catch (e) { onModeRefused(e.message || 'No live backend'); } }, realAvailable: Boolean(flow.realAvailable), realHint: flow.realReason || 'No live backend' } : undefined}
+          theme={{ value: theme, onChange: pickTheme }}
+          fontSize={{ value: fontStep, onChange: setFontStep }}
+          present={{ active: presenter, onToggle: () => setPresenter((v) => !v), label: "Presenter" }}
+          help={{ href: "https://github.com/curtismu7/agent-mcp-door-demo-LAB#readme" }}
+          onReset={reset}
+        >
+          <ShelfLink headers={() => ({ "x-workspace": currentWorkspace() })} />
+        </TopMenu>
+      </header>
+    <main id="main" className={`app${presenter ? ' app--presenter' : ''}`}>
       <div className="banner" role="note" data-testid="sim-banner" data-state={flow?.mode === 'live' ? 'live' : 'mock'}>
         <strong>{modeWord}. Simulated.</strong> {bannerText}
       </div>
-      <header className="head">
-        <div className="head__brand">
-          <img className="head__logo" src="/ping-logo.png" alt="Ping Identity" width="40" height="40" />
-          <div>
-            <p className="head__app">{APP_NAME}</p>
-            <h1>{flow ? flow.title : 'Loading the walkthrough'}</h1>
-            {flow && !presenter && <p className="head__intro">{flow.intro}</p>}
-          </div>
-        </div>
-        <div className="head__tools">
-          <TopMenu
-            mode={flow ? { value: flow.source === "real" ? "real" : "mock", onChange: async (v) => { if (v === "real" && !flow.realAvailable) { onModeRefused(flow.realReason || 'No live backend'); return; } try { await api.setMode(v); onModeSwitched(); } catch (e) { onModeRefused(e.message || 'No live backend'); } }, realAvailable: Boolean(flow.realAvailable), realHint: flow.realReason || 'No live backend' } : undefined}
-            theme={{ value: theme, onChange: pickTheme }}
-            fontSize={{ value: fontStep, onChange: setFontStep }}
-            present={{ active: presenter, onToggle: () => setPresenter((v) => !v), label: "Presenter" }}
-            help={{ href: "https://github.com/curtismu7/agent-mcp-door-demo-LAB#readme" }}
-            onReset={reset}
-          >
-            <ShelfLink headers={() => ({ "x-workspace": currentWorkspace() })} />
-          </TopMenu>
-          <form className="workspace" onSubmit={submitWorkspace}>
-            <label className="workspace__label" htmlFor="workspace-id">Workspace</label>
-            <input id="workspace-id" className="workspace__input" value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={submitWorkspace} maxLength={32} spellCheck={false} aria-invalid={Boolean(wsError)} />
-          </form>
-        </div>
-        {wsError && <p className="head__error" role="alert">{wsError}</p>}
-        {modeNote && <p className="head__note" role="status" data-testid="mode-note">{modeNote}</p>}
-        {resetNote && <p className="head__note" role="status">{resetNote}</p>}
-      </header>
-
       {error && <p role="alert" className="app__error">Could not load the walkthrough: {error}. Run <code>npm run doctor</code>.</p>}
+      {modeNote && <p className="app__note" role="status" data-testid="mode-note">{modeNote}</p>}
+      {resetNote && <p className="app__note" role="status">{resetNote}</p>}
+      <div className="page-head">
+        <div className="page-head__text">
+          <h2>{flow ? flow.title : 'Loading the walkthrough'}</h2>
+          {flow && !presenter && <p className="page-head__intro">{flow.intro}</p>}
+        </div>
+        <form className="workspace" onSubmit={submitWorkspace}>
+          <label className="workspace__label" htmlFor="workspace-id">Workspace</label>
+          <input id="workspace-id" className="workspace__input" value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={submitWorkspace} maxLength={32} spellCheck={false} aria-invalid={Boolean(wsError)} />
+        </form>
+        {wsError && <p className="page-head__error" role="alert">{wsError}</p>}
+      </div>
+
       {!flow && !error && <p>Loading…</p>}
       {flow && (
         <>
@@ -180,5 +185,6 @@ export default function App() {
         </>
       )}
     </main>
+    </>
   );
 }

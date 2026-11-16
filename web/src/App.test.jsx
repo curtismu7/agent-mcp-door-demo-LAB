@@ -38,6 +38,24 @@ describe('App', () => {
     expect(realOption).toBeDisabled();
   });
 
+  it('shell bar: brand, Mock badge, the current page pill and the TopMenu in header.shell-bar; then <main> with the banner first', async () => {
+    mockFetch();
+    render(<App />);
+    await screen.findByText(/meets Test Air/);
+    const bar = document.querySelector('header.shell-bar');
+    expect(bar).not.toBeNull();
+    expect(document.body.querySelector('header.shell-bar + main')).not.toBeNull();
+    expect(bar.querySelector('.shell-brand h1').textContent).toBe('Agent Meets the MCP Door LAB');
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(bar.querySelector('[data-testid=mode-badge]').textContent).toBe('MOCK');
+    expect(bar.querySelector('.shell-nav a[aria-current="page"]').textContent).toBe('MCP door');
+    expect(bar.querySelector('[data-testid=top-menu]').classList.contains('shell-right')).toBe(true);
+    expect(document.querySelector('main').firstElementChild).toBe(screen.getByTestId('sim-banner'));
+    expect(screen.getByRole('heading', { level: 2, name: /meets Test Air/ })).toBeTruthy();
+    expect(bar.querySelector('#workspace-id')).toBeNull();
+    expect(document.querySelector('main #workspace-id')).not.toBeNull();
+  });
+
   it('rule 19: mock→mock posts /api/mode with exactly {source} and the view reloads; a refused switch shows the reason and stays mock', async () => {
     const spy = mockFetch();
     render(<App />);
@@ -69,6 +87,8 @@ describe('App', () => {
     expect((await screen.findByRole('alert')).textContent).toMatch(/Could not load/);
     expect(screen.getByTestId('sim-banner')).toBeTruthy();
     expect(screen.getByTestId('top-menu')).toBeTruthy();
+    expect(document.querySelector('main').firstElementChild).toBe(screen.getByTestId('sim-banner'));
+    expect(screen.getByTestId('sim-banner').nextElementSibling).toBe(screen.getByRole('alert'));
   });
 
   it('a #hop-2 link opens that hop', async () => {
