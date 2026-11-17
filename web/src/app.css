@@ -1,8 +1,8 @@
 /* App layout. Colours, fonts, controls and dark mode come from standalone-ui.css; this file adds layout only. */
-/* Page frame (STANDALONE-UI-PATTERNS.md section 3): one centred 1100px column; the simulation banner is its first child.
+/* Page frame (STANDALONE-UI-PATTERNS.md section 3): one centred 2200px column; the simulation banner is its first child.
    The shared sheet gives the body its 16px side gutter, so the frame only adds vertical space. */
 .app {
-  max-width: 1100px;
+  max-width: 2200px;
   margin: 0 auto;
   padding: 0 0 32px;
 }
