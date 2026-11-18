@@ -10,6 +10,8 @@ import { buildNodeDetail, buildReelSteps } from './lib/reel.js';
 import ShelfLink from "./components/ShelfLink.jsx";
 import VerifyMark from "./components/VerifyMark.jsx";
 import TopMenu, { applyFontSize } from './top-menu/TopMenu.jsx';
+import TalkTrackDialog from "./talk-track/TalkTrackDialog.jsx";
+import talkMd from "../../docs/talk-track.md?raw";
 import PrivilegeCheck from "./privilege-check/PrivilegeCheck.jsx";
 
 const THEME_KEY = "mcpdoor.theme";
@@ -34,6 +36,15 @@ export const bannerText = 'Every host, token, approval and trace id here is a te
 
 export default function App() {
   const [flow, setFlow] = useState(null);
+  const [talkOpen, setTalkOpen] = useState(false);
+  const talkSteps = (() => {
+    const steps = []; let n = 0;
+    for (const line of talkMd.split("\n")) {
+      const m = line.match(/^\d+\.\s+(?:"(.+?)"|\*\*(.+?)\.\*\*\s*(.*))$/);
+      if (m) { n += 1; steps.push({ id: `s${n}`, title: (m[1] || m[2]).slice(0, 60), say: m[1] || m[3] }); }
+    }
+    return steps.length ? steps : [{ id: "s1", title: "Talk track", say: talkMd.slice(0, 600) }];
+  })();
   const [error, setError] = useState(null);
   const [presenter, setPresenter] = useState(false);
   const [workspace, setWorkspace] = useState(currentWorkspace);
@@ -130,6 +141,7 @@ export default function App() {
           theme={{ value: theme, onChange: pickTheme }}
           fontSize={{ value: fontStep, onChange: setFontStep }}
           present={{ active: presenter, onToggle: () => setPresenter((v) => !v), label: "Presenter" }}
+          talkTrack={{ active: talkOpen, onToggle: () => setTalkOpen((v) => !v) }}
           help={{ href: "https://github.com/curtismu7/agent-mcp-door-demo-LAB#readme" }}
           onReset={reset}
         >
@@ -188,6 +200,8 @@ export default function App() {
           {!presenter && <p className="keys">Keys: → next hop step, ← previous, P presenter, Esc leave presenter. Drag a box to move it; Reset puts it back. Brand and names come from <code>customer.config.json</code>. Workspace <b>{flow.workspace}</b>.</p>}
         </>
       )}
+      <TalkTrackDialog isOpen={talkOpen} onClose={() => setTalkOpen(false)} talk={talkSteps} />
+
     </main>
     </>
   );
