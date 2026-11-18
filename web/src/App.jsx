@@ -138,7 +138,8 @@ export default function App() {
         </TopMenu>
       </header>
     <main id="main" className={`app${presenter ? ' app--presenter' : ''}`}>
-      <PrivilegeCheck />
+      {/* the gateway card is its own widget state: its retry button and the StepBar Simulate never compete for primary (ui-pattern: allow P9 the Privilege gateway card is chrome above the walkthrough; the page's one primary is StepBar Simulate) */}
+      <PrivilegeCheck primaryRetry />
       <div className="banner" role="note" data-testid="sim-banner" data-state={flow?.mode === 'live' ? 'live' : 'mock'}>
         <strong>{modeWord}. Simulated.</strong> {bannerText}
       </div>
