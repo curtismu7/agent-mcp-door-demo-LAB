@@ -50,7 +50,7 @@ describe('App', () => {
     expect(bar.querySelector('[data-testid=mode-badge]').textContent).toBe('MOCK');
     expect(bar.querySelector('.shell-nav a[aria-current="page"]').textContent).toBe('MCP door');
     expect(bar.querySelector('[data-testid=top-menu]').classList.contains('shell-right')).toBe(true);
-    expect(document.querySelector('main').firstElementChild).toBe(screen.getByTestId('sim-banner'));
+        expect(screen.getByTestId('privilege-check').nextElementSibling).toBe(screen.getByTestId('sim-banner'));
     expect(screen.getByRole('heading', { level: 2, name: /meets Test Air/ })).toBeTruthy();
     expect(bar.querySelector('#workspace-id')).toBeNull();
     expect(document.querySelector('main #workspace-id')).not.toBeNull();
@@ -87,7 +87,7 @@ describe('App', () => {
     expect((await screen.findByRole('alert')).textContent).toMatch(/Could not load/);
     expect(screen.getByTestId('sim-banner')).toBeTruthy();
     expect(screen.getByTestId('top-menu')).toBeTruthy();
-    expect(document.querySelector('main').firstElementChild).toBe(screen.getByTestId('sim-banner'));
+        expect(screen.getByTestId('privilege-check').nextElementSibling).toBe(screen.getByTestId('sim-banner'));
     expect(screen.getByTestId('sim-banner').nextElementSibling).toBe(screen.getByRole('alert'));
   });
 
