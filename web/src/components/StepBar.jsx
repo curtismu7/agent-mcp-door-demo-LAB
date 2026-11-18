@@ -15,6 +15,7 @@ export default function StepBar({ stepper, caption }) {
         </select>
       </label>
       {!active ? (
+        {/* ui-pattern: allow P9 the page's one primary action: Simulate walks the walkthrough (the gateway card's retry is chrome) */}
         <button type="button" className="primary" onClick={stepper.simulate}>Simulate</button>
       ) : (
         <>
