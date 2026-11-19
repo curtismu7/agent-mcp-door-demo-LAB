@@ -7,7 +7,6 @@ customer.config.json
 .git
 .github
 .githooks
-docs
 scripts
 CHANGELOG.md
 Dockerfile

@@ -9,6 +9,19 @@
 
 html { font-size: var(--fs, 16px); }
 
+.step-num {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  background: var(--accent-gradient);
+  color: var(--on-accent);
+  font: 700 0.75rem var(--font-mono);
+  margin-right: 0.5em;
+  vertical-align: 2px;
+}
+
 /* Shell bar (section 1): Core Dark in both themes, Ping Red gradient rule, full-bleed (the -16px cancels the body
    gutter); wraps at 600px. position: relative anchors the TopMenu sign-in slot. */
 .shell-bar {
@@ -182,12 +195,18 @@ html { font-size: var(--fs, 16px); }
 }
 
 .track__list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+@media (max-width: 900px) {
+  .track__list {
+    grid-template-columns: 1fr;
+  }
 }
 
 .track__list b {
