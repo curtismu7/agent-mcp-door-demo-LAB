@@ -159,7 +159,7 @@ export default function App() {
       {resetNote && <p className="app__note" role="status">{resetNote}</p>}
       <div className="page-head">
         <div className="page-head__text">
-          <h2>{flow ? flow.title : 'Loading the walkthrough'}</h2>
+          <h2><span className="step-num" aria-hidden="true">1</span>{flow ? flow.title : 'Loading the walkthrough'}</h2>
           {flow && !presenter && <p className="page-head__intro">{flow.intro}</p>}
         </div>
         <form className="workspace" onSubmit={submitWorkspace}>
@@ -175,7 +175,7 @@ export default function App() {
           <section className="track" aria-label="Talk track">
             {hop ? (
               <article className="track__now" data-testid="track-now">
-                <h2>Hop {hop.n}: {hop.title}</h2>
+                <h2><span className="step-num" aria-hidden="true">{hop.n}</span>{hop.title}</h2>
                 <p>{hop.say}</p>
               </article>
             ) : (
