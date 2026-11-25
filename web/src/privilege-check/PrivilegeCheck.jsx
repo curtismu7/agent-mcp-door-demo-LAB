@@ -58,6 +58,7 @@ export default function PrivilegeCheck({ apiBase = '', title = 'Privilege gatewa
       <header className="pcard__head">
         <h3 className="pcard__title">{title}</h3>
         {primaryRetry ? (
+          /* ui-pattern: allow P9 the gateway card is chrome above the walkthrough; the page's one primary is StepBar Simulate */
           <button type="button" className="pcard__retry primary" onClick={refresh} disabled={state.phase === 'checking'}>
             {state.phase === 'checking' ? 'Checking…' : 'Run the gateway check'}
           </button>
