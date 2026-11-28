@@ -11,6 +11,8 @@ import ShelfLink from "./components/ShelfLink.jsx";
 import VerifyMark from "./components/VerifyMark.jsx";
 import TopMenu, { applyFontSize } from './top-menu/TopMenu.jsx';
 import TalkTrackDialog from "./talk-track/TalkTrackDialog.jsx";
+import HelpDialog from "./help-dialog/HelpDialog.jsx";
+import { HELP_SECTIONS } from "./helpContent";
 import talkMd from "../../docs/talk-track.md?raw";
 import PrivilegeCheck from "./privilege-check/PrivilegeCheck.jsx";
 
@@ -37,6 +39,7 @@ export const bannerText = 'Every host, token, approval and trace id here is a te
 export default function App() {
   const [flow, setFlow] = useState(null);
   const [talkOpen, setTalkOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const talkSteps = (() => {
     const steps = []; let n = 0;
     for (const line of talkMd.split("\n")) {
@@ -142,7 +145,7 @@ export default function App() {
           fontSize={{ value: fontStep, onChange: setFontStep }}
           present={{ active: presenter, onToggle: () => setPresenter((v) => !v), label: "Presenter" }}
           talkTrack={{ active: talkOpen, onToggle: () => setTalkOpen((v) => !v) }}
-          help={{ href: "https://github.com/curtismu7/agent-mcp-door-demo-LAB#readme" }}
+          help={{ onClick: () => setHelpOpen(true), title: "What this lab is, and what is simulated" }}
           onReset={reset}
         >
           <ShelfLink headers={() => ({ "x-workspace": currentWorkspace() })} />
@@ -201,6 +204,7 @@ export default function App() {
         </>
       )}
       <TalkTrackDialog isOpen={talkOpen} onClose={() => setTalkOpen(false)} talk={talkSteps} />
+      <HelpDialog isOpen={helpOpen} onClose={() => setHelpOpen(false)} sections={HELP_SECTIONS} docsUrl="https://github.com/curtismu7/agent-mcp-door-demo-LAB#readme" />
 
     </main>
     </>
